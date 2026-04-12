@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Debug Console App",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Scheduler.Presentation.ConsoleApp/bin/Debug/net10.0/Scheduler.ConsoleApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Scheduler.Presentation.ConsoleApp",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
