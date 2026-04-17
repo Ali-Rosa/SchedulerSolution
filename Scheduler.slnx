@@ -3,5 +3,7 @@
     <Project Path="Scheduler.ConsoleTest/Scheduler.ConsoleTest.csproj" Id="cbb68aef-8f30-4b4e-bf8c-44862a95ceab" />
     <Project Path="src/Scheduler.Domain/Scheduler.Domain.csproj" />
   </Folder>
-  <Folder Name="/Test/" />
+  <Folder Name="/test/">
+    <Project Path="test/Scheduler.UnitTest/Scheduler.UnitTest.csproj" Id="993b718b-84ef-4276-a57b-8011b675eeb7" />
+  </Folder>
 </Solution>
