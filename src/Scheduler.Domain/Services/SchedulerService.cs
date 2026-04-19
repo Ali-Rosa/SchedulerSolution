@@ -15,7 +15,7 @@ public class SchedulerService
         }
         else if (config.Type == ScheduleType.Recurring)
         {
-            return CalculateDaily(currentDate, config);
+            return CalculateRecurring(currentDate, config);
         }
 
         return new SchedulerResponse("Unsupported schedule type.");
@@ -39,7 +39,7 @@ public class SchedulerService
         return new SchedulerResponse(candidate, description);
     }
 
-    private SchedulerResponse CalculateDaily(DateTime currentDate, ScheduleConfiguration config)
+    private SchedulerResponse CalculateRecurring(DateTime currentDate, ScheduleConfiguration config)
     {
         if (config.Every <= 0)
             return new SchedulerResponse("The 'Every' value must be greater than 0.");
