@@ -2,7 +2,7 @@ namespace Scheduler.Domain.Models;
 
 public record ScheduleConfiguration(
     ScheduleType Type,
-    DateTime ExecutionDateTime,
+    DateTime? ExecutionDateTime,
     OccursType Occurs,
     bool Enabled,
     int Every,
