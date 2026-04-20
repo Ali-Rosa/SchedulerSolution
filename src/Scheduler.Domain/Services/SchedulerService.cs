@@ -78,19 +78,18 @@ public class SchedulerService
             if (config.Every <= 0)
                 return executionDates;
             
-            int counter = 1;
-
             var candidate = Candidate;
 
-            while (candidate <= to && config.Every <= counter)
+            int Desiredquantity = 1; // The occurrence is the one that will control this in the future
+            int attempts = 0;
+
+            while (attempts < Desiredquantity && candidate <= to)
             {
-                counter++;
                 if (candidate >= from)
                 {
                     executionDates.Add(candidate);
-                    break; // para solo generar uno por ahora
                 }
-
+                attempts++;
                 candidate = candidate.AddDays(config.Every);
             }
         }
