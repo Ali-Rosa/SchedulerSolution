@@ -1,4 +1,5 @@
 ﻿using Scheduler.Domain.Models;
+using System.Globalization;
 
 namespace Scheduler.Domain.Services;
 
@@ -8,6 +9,9 @@ public class SchedulerService
     {
         if (!config.Enabled)
             return new SchedulerResponse("The schedule is disabled.");
+
+        if (config.EndDate.HasValue && config.StartDate > config.EndDate.Value)
+            return new SchedulerResponse("StartDate cannot be greater than EndDate.");
 
         if (config.Type == ScheduleType.Once)
         {
@@ -44,56 +48,90 @@ public class SchedulerService
         if (config.Every <= 0)
             return new SchedulerResponse("The 'Every' value must be greater than 0.");
 
-        var candidate = currentDate;
+        var candidate = config.ExecutionDateTime ?? currentDate;
 
-        if (config.ExecutionDateTime.HasValue)
-            candidate = (DateTime)config.ExecutionDateTime;
-
-        var startDateOnly = (DateTime)config.StartDate;
-
-        var endDateOnly = config.EndDate ?? DateTime.MaxValue;
-
-        candidate = candidate.AddDays(config.Every);
-
-        // We obtain all valid dates
-        var executions = GetAllExecutionsInRange(candidate, startDateOnly, endDateOnly, config);
+        var executions = GetAllExecutionsInRange(candidate, config);
 
         if (executions.Count == 0)
             return new SchedulerResponse("There are no executions within the allowed range.");
 
-        // The candidate is the first date on the list
         var nextExecution = executions[0];
 
         var description = $"Occurs every {config.Every} day(s). Schedule will be used on {candidate:dd/MM/yyyy} at {candidate:HH:mm} starting on {config.StartDate:dd/MM/yyyy}";
 
-        return new SchedulerResponse(candidate, description);
+        return new SchedulerResponse(nextExecution, description);
     }
 
-    public List<DateTime> GetAllExecutionsInRange(DateTime Candidate, DateTime from, DateTime to, ScheduleConfiguration config)
+    public List<DateTime> GetAllExecutionsInRange(DateTime start, ScheduleConfiguration config)
     {
         var executionDates = new List<DateTime>();
 
-        if (config.Type == ScheduleType.Recurring)
+        if (config.Type != ScheduleType.Recurring)
+            return executionDates;
+
+        if (config.Every <= 0)
+            return executionDates;
+
+        var candidate = start.AddDays(config.Every);
+
+        var (windowStart, windowEnd) = GetActiveWindow(candidate, config);
+
+        if (config.EndDate.HasValue && windowEnd > config.EndDate.Value)
+            windowEnd = config.EndDate.Value;
+
+        while (candidate <= windowEnd)
         {
-            if (config.Every <= 0)
-                return executionDates;
-            
-            var candidate = Candidate;
-
-            int Desiredquantity = 1; // The occurrence is the one that will control this in the future
-            int attempts = 0;
-
-            while (attempts < Desiredquantity && candidate <= to)
+            if (candidate >= config.StartDate && (!config.EndDate.HasValue || candidate <= config.EndDate.Value))
             {
-                if (candidate >= from)
-                {
-                    executionDates.Add(candidate);
-                }
-                attempts++;
-                candidate = candidate.AddDays(config.Every);
+                executionDates.Add(candidate);
             }
+
+            candidate = candidate.AddDays(config.Every);
         }
 
         return executionDates;
+
     }
+
+    private (DateTime windowStart, DateTime windowEnd) GetActiveWindow(DateTime candidate, ScheduleConfiguration config)
+    {
+        return config.Occurs switch
+        {
+            OccursType.Daily =>
+                (candidate.Date, candidate.Date.AddDays(1).AddTicks(-1)),
+
+            OccursType.Weekly =>
+                GetRankWeekly(candidate),
+
+            OccursType.Monthly =>
+                GetRankMonthly(candidate),
+
+            _ =>
+                (candidate.Date, candidate.Date.AddDays(1).AddTicks(-1))
+        };
+    }
+
+    public (DateTime firstDay, DateTime lastDay) GetRankWeekly(DateTime candidate, DayOfWeek FirstDayWeek = DayOfWeek.Monday)
+    {
+        int difference = (7 + (candidate.DayOfWeek - FirstDayWeek)) % 7;
+
+        DateTime firstDay = candidate.AddDays(-difference).Date;
+        DateTime lastDay = (firstDay.AddDays(6)).AddDays(1).AddTicks(-1);
+
+        return (firstDay, lastDay);
+    }
+
+    public (DateTime firstDay, DateTime lastDay) GetRankMonthly(DateTime candidate)
+    {
+        DateTime firstDay = new DateTime(candidate.Year, candidate.Month, 1);
+
+        DateTime lastDay = (firstDay.AddMonths(1).AddDays(-1)).AddDays(1).AddTicks(-1);
+
+        return (firstDay, lastDay);
+    }
+
+
+
+
+
 }

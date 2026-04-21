@@ -184,8 +184,10 @@ public class SchedulerServiceTests
 
     #endregion
 
-    #region CalculateRecurring - Ejecución recurrente
+    #region CalculateRecurring - Recurring execution
 
+    #region CalculateRecurring - Recurring execution - Initial Validations
+    
     [Fact]
     public void CalculateRecurring_WithEveryZero_ReturnsError()
     {
@@ -230,11 +232,15 @@ public class SchedulerServiceTests
         Assert.Equal("The 'Every' value must be greater than 0.", result.ErrorMessage);
     }
 
+    #endregion CalculateRecurring - Recurring execution - Initial Validations
+
+    #region CalculateRecurring - Recurring execution - With DateTime
+    
     [Fact]
-    public void CalculateRecurring_WithDateTime_ReturnsDateTimePlusEvery()
+    public void CalculateRecurring_WithDateTime_ReturnsNextExecution()
     {
         // Arrange
-        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var currentDateOnly = DateTime.Parse("2020-01-01");
         var datetimeOnly = DateTime.Parse("2020-01-04");
         var startdateOnly = DateTime.Parse("2020-01-01");
 
@@ -254,14 +260,49 @@ public class SchedulerServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > datetimeOnly);
         Assert.Equal(datetimeOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
+
     }
 
     [Fact]
-    public void CalculateRecurring_WithDateTimeAndStartDateHigher_ReturnsDateTimePlusEvery()
+    public void CalculateRecurring_WithDateTimeAndStartDateAndEndDate_ReturnsNextExecution()
     {
         // Arrange
-        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var currentDateOnly = DateTime.Parse("2020-01-01");
+        var datetimeOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-01");
+        var enddateOnly = DateTime.Parse("2020-01-06");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: datetimeOnly,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > datetimeOnly);
+        Assert.True(result.NextExecutionTime!.Value <= enddateOnly);
+        Assert.Equal(datetimeOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
+
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithDateTimeAndStartDateHigher_ReturnsNextExecution()
+    {
+        // Arrange
+        var currentDateOnly = DateTime.Parse("2020-01-01");
         var datetimeOnly = DateTime.Parse("2020-01-04");
         var startdateOnly = DateTime.Parse("2020-01-05");
 
@@ -281,14 +322,16 @@ public class SchedulerServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > datetimeOnly);
         Assert.Equal(datetimeOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
     }
 
     [Fact]
     public void CalculateRecurring_WithDateTimeAndStartDateHigher_ReturnsError()
     {
         // Arrange
-        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var currentDateOnly = DateTime.Parse("2020-01-01");
         var datetimeOnly = DateTime.Parse("2020-01-04");
         var startdateOnly = DateTime.Parse("2020-01-07");
 
@@ -310,27 +353,70 @@ public class SchedulerServiceTests
         Assert.Equal("There are no executions within the allowed range.", result.ErrorMessage);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* WITH DATETIME NULL */
-
     [Fact]
-    public void CalculateRecurring_WithDateTimeNull_ReturnsDateTimePlusEvery()
+    public void CalculateRecurring_WithDateTimeAndMinorEndDate_ReturnsError()
     {
         // Arrange
-        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var currentDateOnly = DateTime.Parse("2020-01-01");
+        var datetimeOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-01");
+        var enddateOnly = DateTime.Parse("2020-01-04");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: datetimeOnly,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("There are no executions within the allowed range.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithDateTimeAndStartDateGreaterEndDate_ReturnsError()
+    {
+        // Arrange
+        var currentDateOnly = DateTime.Parse("2020-01-01");
+        var datetimeOnly = DateTime.Parse("2020-01-05");
+        var startdateOnly = DateTime.Parse("2020-01-02");
+        var enddateOnly = DateTime.Parse("2020-01-01");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: datetimeOnly,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("StartDate cannot be greater than EndDate.", result.ErrorMessage);
+
+    }
+
+    #endregion CalculateRecurring - Recurring execution - With DateTime
+
+    #region CalculateRecurring - Recurring execution - With Current Date 
+
+    [Fact]
+    public void CalculateRecurring_WithCurrentDate_ReturnsNextExecution()
+    {
+        // Arrange
+        var currentDateOnly = DateTime.Parse("2020-01-01");
         var startdateOnly = DateTime.Parse("2020-01-01");
 
         var config = new ScheduleConfiguration(
@@ -349,97 +435,88 @@ public class SchedulerServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > currentDateOnly);
         Assert.Equal(currentDateOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    [Fact]
-    public void CalculateRecurring_WithFutureStartDate_ReturnsStartDate()
-    {
-        // Arrange
-        var tomorrow = DateTime.Now.AddDays(1);
-        var hour14 = tomorrow.Date.AddHours(14);
-
-        var config = new ScheduleConfiguration(
-            Type: ScheduleType.Recurring,
-            ExecutionDateTime: hour14,
-            Occurs: OccursType.Daily,
-            Enabled: true,
-            Every: 2,
-            StartDate: tomorrow,
-            EndDate: null
-        );
-
-        // Act
-        var result = _schedulerService.CalculateNextExecution(DateTime.Now, config);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(hour14.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
     }
 
     [Fact]
-    public void CalculateRecurring_WithPastStartDate_CalculatesNextOccurrence()
+    public void CalculateRecurring_WithCurrentDateAndStartDateAndEndDate_ReturnsNextExecution()
     {
         // Arrange
-        var currentDate = DateTime.Now;
-        var pastDate = currentDate.AddDays(-10); // 10 days ago
-        var executionTime = currentDate.Date.AddHours(10); // 10:00 AM
+        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-01");
+        var enddateOnly = DateTime.Parse("2020-01-06");
 
         var config = new ScheduleConfiguration(
             Type: ScheduleType.Recurring,
-            ExecutionDateTime: executionTime,
-            Occurs: OccursType.Daily,
-            Enabled: true,
-            Every: 3, // Every 3 days
-            StartDate: pastDate,
-            EndDate: null
-        );
-
-        // Act
-        var result = _schedulerService.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.True(result.NextExecutionTime!.Value > currentDate);
-    }
-
-    [Fact]
-    public void CalculateRecurring_WithDateAfterEndDate_ReturnsError()
-    {
-        // Arrange
-        var currentDate = DateTime.Now;
-        //var endDate = currentDate.AddDays(1);
-        var endDate = currentDate;
-        var pastStartDate = currentDate.AddDays(-30);
-        var executionTime = currentDate.Date.AddHours(16);
-
-        var config = new ScheduleConfiguration(
-            Type: ScheduleType.Recurring,
-            ExecutionDateTime: executionTime,
+            ExecutionDateTime: null,
             Occurs: OccursType.Daily,
             Enabled: true,
             Every: 1,
-            StartDate: pastStartDate,
-            EndDate: endDate
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
         );
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > currentDateOnly);
+        Assert.True(result.NextExecutionTime!.Value <= enddateOnly);
+        Assert.Equal(currentDateOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithCurrentDateAndStartDateHigherButPossible_ReturnsNextExecution()
+    {
+        // Arrange
+        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-05");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: null,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: null
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.True(result.NextExecutionTime!.Value > currentDateOnly);
+        Assert.Equal(currentDateOnly.Date.AddDays(config.Every), result.NextExecutionTime!.Value.Date);
+        Assert.Contains("Occurs every", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithCurrentDateAndStartDateHigher_ReturnsError()
+    {
+        // Arrange
+        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-07");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: null,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: null
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -447,34 +524,59 @@ public class SchedulerServiceTests
     }
 
     [Fact]
-    public void CalculateRecurring_WithValidConfiguration_ReturnsNextExecution()
+    public void CalculateRecurring_WithCurrentDateAndMinorEndDate_ReturnsError()
     {
         // Arrange
-        var currentDate = DateTime.Now;
-        var pastStartDate = currentDate.AddDays(-5);
-        var executionTime = currentDate.Date.AddHours(15);
-        var futureEndDate = currentDate.AddDays(30);
+        var currentDateOnly = DateTime.Parse("2020-01-04");
+        var startdateOnly = DateTime.Parse("2020-01-01");
+        var enddateOnly = DateTime.Parse("2020-01-04");
 
         var config = new ScheduleConfiguration(
             Type: ScheduleType.Recurring,
-            ExecutionDateTime: executionTime,
+            ExecutionDateTime: null,
             Occurs: OccursType.Daily,
             Enabled: true,
-            Every: 2, // Every 2 days
-            StartDate: pastStartDate,
-            EndDate: futureEndDate
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
         );
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.True(result.NextExecutionTime!.Value > currentDate);
-        Assert.True(result.NextExecutionTime!.Value <= futureEndDate);
-        Assert.Contains("Occurs every", result.Description);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("There are no executions within the allowed range.", result.ErrorMessage);
     }
+
+    [Fact]
+    public void CalculateRecurring_WithCurrentDateAndStartDateGreaterEndDate_ReturnsError()
+    {
+        // Arrange
+        var currentDateOnly = new DateTime(2020,1,5);
+        var startdateOnly = DateTime.Parse("2020-01-02");
+        var enddateOnly = DateTime.Parse("2020-01-01");
+
+        var config = new ScheduleConfiguration(
+            Type: ScheduleType.Recurring,
+            ExecutionDateTime: null,
+            Occurs: OccursType.Daily,
+            Enabled: true,
+            Every: 1,
+            StartDate: startdateOnly,
+            EndDate: enddateOnly
+        );
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDateOnly, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("StartDate cannot be greater than EndDate.", result.ErrorMessage);
+
+    }
+
+    #endregion CalculateRecurring - Recurring execution - With Current Date 
 
     #endregion
 }
