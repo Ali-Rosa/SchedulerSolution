@@ -4,11 +4,11 @@ namespace Scheduler.Domain.Models
     public readonly struct SchedulerResponse
     {
         public bool IsSuccess { get; }
-        public DateTime? NextExecutionTime { get; } 
+        public DateTimeOffset? NextExecutionTime { get; } 
         public string Description { get; }
         public string ErrorMessage { get; }
 
-        public SchedulerResponse(DateTime? nextExecutionTime, string description)
+        public SchedulerResponse(DateTimeOffset? nextExecutionTime, string description)
         {
             IsSuccess = true;
             NextExecutionTime = nextExecutionTime;
@@ -23,6 +23,5 @@ namespace Scheduler.Domain.Models
             Description = string.Empty;
             ErrorMessage = errorMessage;
         }
-
     }
 }
