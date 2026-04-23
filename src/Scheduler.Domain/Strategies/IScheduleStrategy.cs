@@ -4,7 +4,8 @@ namespace Scheduler.Domain.Strategies
 {
     public interface IScheduleStrategy
     {
-        ScheduleType Type { get; }
-        SchedulerResponse CalculateNextExecution(DateTimeOffset currentUtc, DateTimeOffset currentLocalTime, ScheduleConfiguration config);
+        ScheduleStrategyKey Key { get; }
+
+        SchedulerResponse CalculateNextExecution(DateTimeOffset currentUtc, ScheduleConfiguration config, TimeZoneInfo timeZone);
     }
 }

@@ -25,15 +25,11 @@ public class SchedulerServiceTests
     public void CalculateNextExecution_WithNullConfig_ReturnsError()
     {
         // Act
-        var result = _schedulerService.CalculateNextExecution(
-            DateTimeOffset.UtcNow,
-            null
-        );
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, null!);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Null(result.NextExecutionTime);
-        //Assert.Contains("The configuration cannot be null.", result.Description);
         Assert.Equal("The configuration cannot be null.", result.ErrorMessage);
     }
 
@@ -41,16 +37,13 @@ public class SchedulerServiceTests
     public void CalculateNextExecution_WithDisabledSchedule_ReturnsError()
     {
         // Arrange
-        var config = ScheduleConfiguration
-            .DefaultOnce()
-            with
-        { Enabled = false };
+        var config = ScheduleConfiguration .DefaultOnce() with
+        { 
+            Enabled = false 
+        };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(
-            DateTimeOffset.UtcNow,
-            config
-        );
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -62,16 +55,13 @@ public class SchedulerServiceTests
     public void CalculateNextExecution_WithUnsupportedScheduleType_ReturnsError()
     {
         // Arrange
-        var config = ScheduleConfiguration
-            .DefaultOnce()
-            with
-        { Type = (ScheduleType)1222 };
+        var config = ScheduleConfiguration .DefaultOnce() with
+        { 
+            Type = (ScheduleType)1222 
+        };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(
-            DateTimeOffset.UtcNow,
-            config
-        );
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -80,28 +70,25 @@ public class SchedulerServiceTests
     }
 
     [Fact]
-    public void CalculateNextExecution_WithInvalidTimeZone_ReturnsError()
+    public void CalculateNextExecution_WithUnsupportedOccursType_ReturnsError()
     {
         // Arrange
-        var config = ScheduleConfiguration
-            .DefaultOnce()
-            with
-        { TimeZoneId = "Invalid/Zone" };
+        var config = ScheduleConfiguration .DefaultOnce() with
+        { 
+            Occurs = (OccursType)1999 
+        };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(
-            DateTimeOffset.UtcNow,
-            config
-        );
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Null(result.NextExecutionTime);
-        Assert.StartsWith("Invalid TimeZoneId", result.ErrorMessage);
+        Assert.Equal("Not defined occurs type.", result.ErrorMessage);
     }
 
     [Fact]
-    public void CalculateNextExecution_WhenStrategyIsNotRegistered_ReturnsUnsupportedScheduleTypeError()
+    public void CalculateNextExecution_WhenStrategyCombinationIsNotRegistered_ReturnsUnsupportedCombinationError()
     {
         // Arrange
         var strategies = new IScheduleStrategy[]
@@ -111,19 +98,51 @@ public class SchedulerServiceTests
 
         var schedulerService = new SchedulerService(strategies);
 
-        var config = ScheduleConfiguration
-            .DefaultRecurring();
+        var config = ScheduleConfiguration.DefaultRecurring();
 
         // Act
-        var result = schedulerService.CalculateNextExecution(
-            DateTimeOffset.UtcNow,
-            config
-        );
+        var result = schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Null(result.NextExecutionTime);
-        Assert.Equal("Unsupported schedule type.", result.ErrorMessage);
+        Assert.Equal("Unsupported schedule and occurs combination.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateNextExecution_WithEveryNegative_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultOnce() with
+        {
+            Every = -1
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("The Every value cannot be negative.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateNextExecution_WithInvalidTimeZone_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration .DefaultOnce() with
+        { 
+            TimeZoneId = "Invalid/Zone" 
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.StartsWith("Invalid TimeZoneId", result.ErrorMessage);
     }
 
     #endregion CalculateNextExecution - Initial Validations
@@ -132,29 +151,13 @@ public class SchedulerServiceTests
     #region CalculateOnce - Single execution
 
     [Fact]
-    public void CalculateOnce_WithDateTimeNull_ReturnsError()
-    {
-        // Arrange
-        var config = ScheduleConfiguration.DefaultOnce();
-
-        // Act
-        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Equal("ExecutionDateTimeUtc is required for a one-time schedule.", result.ErrorMessage);
-    }
-
-    [Fact]
     public void CalculateOnce_WithDatetimeBeforeCurrentDate_ReturnsError()
     {
         // Arrange
         var config = ScheduleConfiguration.DefaultOnce() with
         {
-            ExecutionDateTimeUtc = DateTimeOffset.UtcNow,
-            StartDateUtc = DateTimeOffset.UtcNow.AddDays(-1),
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow,
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
         };
 
         // Act
@@ -164,26 +167,28 @@ public class SchedulerServiceTests
         Assert.False(result.IsSuccess);
         Assert.Null(result.NextExecutionTime);
         Assert.Equal("", result.Description);
-        Assert.Equal("DateTime greater than CurrentDate", result.ErrorMessage);
+        Assert.Equal("DateTime cannot be less than CurrentDate", result.ErrorMessage);
     }
 
-    //[Fact]
-    //public void CalculateOnce_WithDateBeforeStartDate_ReturnsError()
-    //{
-    //    // Arrange
-    //    var config = ScheduleConfiguration.DefaultOnce() with
-    //    {
-    //        ExecutionDateTimeUtc = DateTimeOffset.UtcNow.AddDays(1),
-    //        StartDateUtc = DateTimeOffset.UtcNow.AddDays(2)
-    //    };
+    [Fact]
+    public void CalculateOnce_WithDatetimeBeforeStartdateDate_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultOnce() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(10),
+        };
 
-    //    // Act
-    //    var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
-    //    // Assert
-    //    Assert.False(result.IsSuccess);
-    //    Assert.Equal("The execution date is prior to the start date.", result.ErrorMessage);
-    //}
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("", result.Description);
+        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
+    }
 
     [Fact]
     public void CalculateOnce_WithDatetimeAfterEndDate_ReturnsError()
@@ -191,9 +196,9 @@ public class SchedulerServiceTests
         // Arrange
         var config = ScheduleConfiguration.DefaultOnce() with
         {
-            ExecutionDateTimeUtc = DateTimeOffset.UtcNow.AddDays(1),
-            StartDateUtc = DateTimeOffset.UtcNow.AddDays(-1),
-            EndDateUtc = DateTimeOffset.UtcNow
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-1),
+            EndDateLocal = DateTimeOffset.UtcNow
         };
 
         // Act
@@ -207,22 +212,39 @@ public class SchedulerServiceTests
     }
 
     [Fact]
+    public void CalculateOnce_WithDateTimeNull_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultOnce();
+        var currentDate = DateTimeOffset.UtcNow;
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(currentDate, result.NextExecutionTime);
+        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
     public void CalculateOnce_WithValidFutureDate_ReturnsSuccess()
     {
         // Arrange
         var config = ScheduleConfiguration.DefaultOnce() with
         {
-            ExecutionDateTimeUtc = DateTimeOffset.UtcNow.AddDays(1),
-            StartDateUtc = DateTimeOffset.UtcNow.AddDays(-1),
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
         };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(DateTime.Now, config);
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(config.ExecutionDateTimeUtc.Value, result.NextExecutionTime!.Value);
+        Assert.Equal(config.ExecutionDateTimeLocal.Value, result.NextExecutionTime!.Value);
         Assert.Contains("Occurs once", result.Description);
     }
 
@@ -232,9 +254,9 @@ public class SchedulerServiceTests
         // Arrange
         var config = ScheduleConfiguration.DefaultOnce() with
         {
-            ExecutionDateTimeUtc = DateTimeOffset.UtcNow.AddDays(1),
-            StartDateUtc = DateTimeOffset.UtcNow.AddDays(-1),
-            EndDateUtc = DateTimeOffset.UtcNow.AddDays(2)
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
+            EndDateLocal = DateTimeOffset.UtcNow.AddDays(20)
         };
 
         // Act
@@ -242,16 +264,59 @@ public class SchedulerServiceTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(config.ExecutionDateTimeUtc.Value, result.NextExecutionTime!.Value);
+        Assert.Equal(config.ExecutionDateTimeLocal.Value, result.NextExecutionTime!.Value);
+    }
+
+    [Fact]
+    public void CalculateOnce_WithLocalTimeZone_ReturnsSuccess()
+    {
+        // Arrange
+        var timeZoneId = "Europe/Madrid";
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+        var localExecution = new DateTime(2026, 05, 10, 08, 30, 00, DateTimeKind.Unspecified);
+        var executionDto = new DateTimeOffset(localExecution, timeZone.GetUtcOffset(localExecution));
+
+        var config = ScheduleConfiguration.DefaultOnce() with
+        {
+            ExecutionDateTimeLocal = executionDto,
+            StartDateLocal = executionDto.AddDays(-1),
+            TimeZoneId = timeZoneId
+        };
+
+        var nowUtc = DateTimeOffset.UtcNow;
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(nowUtc, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(executionDto, result.NextExecutionTime);
     }
 
 
     #endregion CalculateOnce - Single execution
 
 
+    #region CalculateRecurring - Recurring execution
 
+    [Fact]
+    public void CalculateRecurring_WithDateTimeNull_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring();
+        var currentDate = DateTimeOffset.UtcNow;
 
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
 
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(currentDate, result.NextExecutionTime);
+        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
+    }
 
+    #endregion CalculateRecurring - Recurring execution
 
 }

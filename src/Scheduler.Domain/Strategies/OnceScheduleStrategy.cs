@@ -1,33 +1,41 @@
 ﻿using Scheduler.Domain.Models;
 
+namespace Scheduler.Domain.Strategies;
 
-namespace Scheduler.Domain.Strategies
+public sealed class OnceScheduleStrategy : IScheduleStrategy
 {
-    public sealed class OnceScheduleStrategy : IScheduleStrategy
+    public ScheduleStrategyKey Key => new(ScheduleType.Once, OccursType.Daily);
+
+    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
     {
-        public ScheduleType Type => ScheduleType.Once;
+        var candidate = currentDateUtc;
 
-        public SchedulerResponse CalculateNextExecution(DateTimeOffset currentUtc, DateTimeOffset _ /* currentLocalTime */, ScheduleConfiguration config)
+        if (config.ExecutionDateTimeLocal.HasValue)
         {
-            if (!config.ExecutionDateTimeUtc.HasValue)
-                return new SchedulerResponse("ExecutionDateTimeUtc is required for a one-time schedule.");
+            if (candidate > config.ExecutionDateTimeLocal.Value)
+                return new SchedulerResponse("DateTime cannot be less than CurrentDate");
 
-            var candidate = config.ExecutionDateTimeUtc.Value;
-
-            if (candidate < currentUtc)
-                return new SchedulerResponse("DateTime greater than CurrentDate");
-
-            //if (config.StartDateUtc.HasValue && candidate < config.StartDateUtc.Value)
-            //    return new SchedulerResponse("The execution date is prior to the start date.");
-
-            if (config.EndDateUtc.HasValue && candidate > config.EndDateUtc.Value)
-                return new SchedulerResponse("The execution date is outside the allowed range.");
-
-            var description =
-                $"Occurs once. Schedule will be used on {candidate:dd/MM/yyyy} " +
-                $"at {candidate:HH:mm} UTC";
-
-            return new SchedulerResponse(candidate, description);
+            if (candidate < config.ExecutionDateTimeLocal.Value)
+                candidate = config.ExecutionDateTimeLocal.Value;
         }
+
+        if ((config.StartDateLocal.HasValue && candidate < config.StartDateLocal.Value)
+            || (config.EndDateLocal.HasValue && candidate > config.EndDateLocal.Value))
+            return new SchedulerResponse("The execution date is outside the allowed range.");
+
+        // OUTPUTS
+        DateTimeOffset candidateLocalTime = TimeZoneInfo.ConvertTime(candidate, timeZone!);
+        
+        var description = $"Occurs once. Schedule will be used on {candidateLocalTime:dd/MM/yyyy} "
+            + $"at {candidateLocalTime:HH:mm} ";
+
+        if (config.StartDateLocal.HasValue)
+        {
+            DateTimeOffset StartDateCandidatoLocalTime = TimeZoneInfo.ConvertTime(config.StartDateLocal!.Value, timeZone!);
+            description += $"starting on {StartDateCandidatoLocalTime:dd/MM/yyyy}";
+        }      
+
+        return new SchedulerResponse(candidateLocalTime, description);
     }
+
 }

@@ -3,11 +3,11 @@ namespace Scheduler.Domain.Models;
 public record ScheduleConfiguration(
     bool Enabled,
     ScheduleType Type,
-    DateTimeOffset? ExecutionDateTimeUtc,
+    DateTimeOffset? ExecutionDateTimeLocal,
     OccursType Occurs,
     int Every,
-    DateTimeOffset? StartDateUtc,
-    DateTimeOffset? EndDateUtc,
+    DateTimeOffset? StartDateLocal,
+    DateTimeOffset? EndDateLocal,
     string TimeZoneId
 )
 {
@@ -15,11 +15,11 @@ public record ScheduleConfiguration(
         new(
             Enabled: true,
             Type: ScheduleType.Once,
-            ExecutionDateTimeUtc: null,
+            ExecutionDateTimeLocal: null,
             Occurs: OccursType.Daily,
-            Every: 1,
-            StartDateUtc: null,
-            EndDateUtc: null,
+            Every: 0,
+            StartDateLocal: null,
+            EndDateLocal: null,
             TimeZoneId: TimeZoneInfo.Utc.Id
         );
 
@@ -27,11 +27,11 @@ public record ScheduleConfiguration(
         new(
             Enabled: true,
             Type: ScheduleType.Recurring,
-            ExecutionDateTimeUtc: null,
+            ExecutionDateTimeLocal: null,
             Occurs: OccursType.Daily,
             Every: 1,
-            StartDateUtc: DateTimeOffset.UtcNow,
-            EndDateUtc: null,
+            StartDateLocal: null,
+            EndDateLocal: null,
             TimeZoneId: TimeZoneInfo.Utc.Id
         );
 }
