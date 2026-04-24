@@ -219,7 +219,7 @@ public class SchedulerServiceTests
         };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(DateTime.Now, config);
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -260,7 +260,7 @@ public class SchedulerServiceTests
         };
 
         // Act
-        var result = _schedulerService.CalculateNextExecution(DateTime.Now, config);
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         // Assert
         Assert.True(result.IsSuccess);
