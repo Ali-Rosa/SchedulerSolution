@@ -149,6 +149,23 @@ public class SchedulerServiceTests
 
 
     #region CalculateOnce - Single execution
+    
+    [Fact]
+    public void CalculateOnce_WithDateTimeNull_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultOnce();
+        var currentDate = DateTimeOffset.UtcNow;
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(currentDate, result.NextExecutionTime);
+        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
+    }
 
     [Fact]
     public void CalculateOnce_WithDatetimeBeforeCurrentDate_ReturnsError()
@@ -209,23 +226,6 @@ public class SchedulerServiceTests
         Assert.Null(result.NextExecutionTime);
         Assert.Equal("", result.Description);
         Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void CalculateOnce_WithDateTimeNull_ReturnsSuccess()
-    {
-        // Arrange
-        var config = ScheduleConfiguration.DefaultOnce();
-        var currentDate = DateTimeOffset.UtcNow;
-
-        // Act
-        var result = _schedulerService.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(currentDate, result.NextExecutionTime);
-        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
     }
 
     [Fact]
@@ -300,6 +300,129 @@ public class SchedulerServiceTests
 
     #region CalculateRecurring - Recurring execution
 
+
+    [Fact]
+    public void CalculateRecurring_WithEveryLessThanOrEqualToZero_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            Every = 0
+        };
+        var currentDate = DateTimeOffset.UtcNow;
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("", result.Description);
+        Assert.Contains("The Every value must be greater than 0.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithDatetimeBeforeCurrentDate_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow,
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("", result.Description);
+        Assert.Equal("DateTime cannot be less than CurrentDate", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithDatetimeBeforeStartdateDate_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(10),
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(config.StartDateLocal.Value.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_CurrentDateBeforeStartdateDate_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(10),
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(config.StartDateLocal.Value.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithDatetimeAfterEndDate_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-1),
+            EndDateLocal = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("", result.Description);
+        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void CalculateRecurring_CurrentDateAfterEndDate_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-1),
+            EndDateLocal = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.NextExecutionTime);
+        Assert.Equal("", result.Description);
+        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
+    }
+
     [Fact]
     public void CalculateRecurring_WithDateTimeNull_ReturnsSuccess()
     {
@@ -313,10 +436,113 @@ public class SchedulerServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(currentDate, result.NextExecutionTime);
-        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
+        Assert.Equal(currentDate.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
     }
 
+    [Fact]
+    public void CalculateRecurring_WithValidFutureDateTime_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Equal(config.ExecutionDateTimeLocal.Value.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithValidFutureCurrentDate_ReturnsSuccess()
+    {
+        // Arrange
+        var currentDate = DateTimeOffset.UtcNow.AddDays(1);
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Equal(currentDate.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithValidDateInRange_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            StartDateLocal = DateTimeOffset.UtcNow.AddDays(-10),
+            EndDateLocal = DateTimeOffset.UtcNow.AddDays(20)
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Equal(config.ExecutionDateTimeLocal.Value.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithValidDateInRangeWithNoStartDate_ReturnsSuccess()
+    {
+        // Arrange
+        var config = ScheduleConfiguration.DefaultRecurring() with
+        {
+            ExecutionDateTimeLocal = DateTimeOffset.UtcNow.AddDays(1),
+            EndDateLocal = DateTimeOffset.UtcNow.AddDays(20)
+        };
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Equal(config.ExecutionDateTimeLocal.Value.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
+
+    [Fact]
+    public void CalculateRecurring_WithOnlyCurrentDate_ReturnsSuccess()
+    {
+        // Arrange
+        var currentDate = DateTimeOffset.UtcNow;
+        var config = ScheduleConfiguration.DefaultRecurring();
+;
+
+        // Act
+        var result = _schedulerService.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal("", result.ErrorMessage);
+        Assert.Equal(currentDate.AddDays(config.Every), result.NextExecutionTime);
+        Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
+    }
     #endregion CalculateRecurring - Recurring execution
 
 }
