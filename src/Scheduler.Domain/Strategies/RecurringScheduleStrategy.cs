@@ -1,4 +1,5 @@
 ﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Strategies
 {
@@ -30,20 +31,53 @@ namespace Scheduler.Domain.Strategies
             if (config.EndDateLocal.HasValue && candidate > config.EndDateLocal.Value)
                 return new SchedulerResponse("The execution date is outside the allowed range.");
 
-            /// CALCULATE DATE RANGE
-            var executions = GetAllExecutionsInRange(candidate, config);
+            ////////////////////////////////////////////////////////////////////////
+            var candidateLocal = TimeZoneInfo.ConvertTime(candidate, timeZone);
+            
+            DateOnly day = DateOnly.FromDateTime(candidateLocal.DateTime);
 
-            //  VALIDATE IF THERE ARE EXECUTIONS IN THE RANGE 
-            if (executions.Count == 0)
-                return new SchedulerResponse("There are no executions within the allowed range.");
+            ///// FOR WEEKLY
 
-            var nextExecution = executions[0]; // ONLY ONE FOR DAILY, SO TAKE THE FIRST ONE FOR NOW
+            if (config.Weekly is not null)
+            {
+                var startLocal = TimeZoneInfo.ConvertTime(config.StartDateLocal ?? candidate, timeZone);
 
-            //  OUTPUTS
-            DateTimeOffset candidateLocalTime = TimeZoneInfo.ConvertTime(nextExecution, timeZone!);
+                var startDay = DateOnly.FromDateTime(startLocal.DateTime);
 
-            var description = $"Occurs every day. Schedule will be used on {candidateLocalTime:dd/MM/yyyy} "
-                + $"at {candidateLocalTime:HH:mm} ";
+                if (!WeeklyCalendarRule.IsValidDay(day, startDay, config.Weekly))
+                {
+                    return new SchedulerResponse("The selected day is not valid for the weekly schedule.");
+                }
+            }
+
+            ///// FOR iNTRAdAY
+            IEnumerable<DateTimeOffset> executions;
+
+            if (config.IntraDay is not null)
+            {
+                executions = IntraDayRule.GetExecutionsForDay(day, config.IntraDay, timeZone);
+            }
+            else
+            {
+                executions = new[]
+                {
+                    candidateLocal.ToUniversalTime()
+                };
+            }
+
+            var nextExecution = executions .Where(e => e > currentDateUtc) .OrderBy(e => e) .FirstOrDefault();
+
+            if (nextExecution == default)
+                return new SchedulerResponse("No valid executions found.");
+
+
+            
+            
+            ////////////  OUTPUTS  ///////////
+            DateTimeOffset nextExecutionLocal = TimeZoneInfo.ConvertTime(nextExecution, timeZone!);
+
+            var description = $"Occurs every day. Schedule will be used on {nextExecutionLocal:dd/MM/yyyy} "
+                + $"at {nextExecutionLocal:HH:mm} ";
 
             if (config.StartDateLocal.HasValue)
             {
@@ -51,34 +85,10 @@ namespace Scheduler.Domain.Strategies
                 description += $"starting on {StartDateCandidatoLocalTime:dd/MM/yyyy}";
             }
 
-            return new SchedulerResponse(candidateLocalTime, description);
+            return new SchedulerResponse(nextExecutionLocal, description);
         }
 
-        private List<DateTimeOffset> GetAllExecutionsInRange(DateTimeOffset candidate, ScheduleConfiguration config)
-        {
-            var executionDates = new List<DateTimeOffset>();
-
-            var current = candidate;
-
-            var endDate = config.EndDateLocal ?? DateTimeOffset.Now.AddMonths(1); // safety limit
-
-            while (current <= endDate)
-            {
-                if ((!config.StartDateLocal.HasValue || current >= config.StartDateLocal.Value) &&
-                    (!config.EndDateLocal.HasValue || current <= config.EndDateLocal.Value))
-                {
-                    executionDates.Add(current);
-                }
-
-                current = current.AddDays(config.Every);
-            }
-
-            return executionDates;
-        }
 
     }
 
-
 }
-
-
