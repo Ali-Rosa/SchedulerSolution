@@ -1,10 +1,9 @@
 ﻿
-namespace Scheduler.Domain.Models
+namespace Scheduler.Domain.Models;
+
+public enum IntraDayFrequencyUnit
 {
-    public enum IntraDayFrequencyUnit
-    {
-        Hours,
-        Minutes,
-        Seconds
-    }
+    Hours,
+    Minutes,
+    Seconds
 }
