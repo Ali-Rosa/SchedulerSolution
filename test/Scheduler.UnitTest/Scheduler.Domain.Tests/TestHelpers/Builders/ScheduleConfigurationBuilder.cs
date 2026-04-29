@@ -20,6 +20,9 @@ public sealed class ScheduleConfigurationBuilder
     public static ScheduleConfigurationBuilder Recurring()
         => new() { _type = ScheduleType.Recurring, _every = 1 };
 
+    public static ScheduleConfigurationBuilder RecurringWeekly()
+        => new() { _type = ScheduleType.Recurring, _every = 1 };
+
     public ScheduleConfigurationBuilder Disabled()
     {
         _enabled = false;

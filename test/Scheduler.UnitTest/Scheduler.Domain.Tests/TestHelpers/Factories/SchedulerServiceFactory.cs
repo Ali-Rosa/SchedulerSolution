@@ -1,7 +1,7 @@
 ﻿using Scheduler.Domain.Services;
 using Scheduler.Domain.Strategies;
 
-namespace Scheduler.Domain.Tests.TestHelpers;
+namespace Scheduler.Domain.Tests.TestHelpers.Factories;
 
 internal static class SchedulerServiceFactory
 {
@@ -10,7 +10,8 @@ internal static class SchedulerServiceFactory
         return new SchedulerService(new IScheduleStrategy[]
         {
             new OnceScheduleStrategy(),
-            new RecurringScheduleStrategy()
+            new RecurringScheduleStrategy(),
+            new WeeklyScheduleStrategy()
         });
     }
 }

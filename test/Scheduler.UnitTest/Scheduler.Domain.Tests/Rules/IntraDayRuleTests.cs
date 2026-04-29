@@ -99,9 +99,3 @@ public class IntraDayRuleTests
 
 
 }
-
-
-
-
-
-

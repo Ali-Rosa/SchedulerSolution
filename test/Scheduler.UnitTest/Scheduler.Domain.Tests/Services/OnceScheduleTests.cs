@@ -1,6 +1,6 @@
 ﻿using Scheduler.Domain.Services;
-using Scheduler.Domain.Tests.TestHelpers;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
+using Scheduler.Domain.Tests.TestHelpers.Factories;
 
 namespace Scheduler.Domain.Tests.Services;
 
