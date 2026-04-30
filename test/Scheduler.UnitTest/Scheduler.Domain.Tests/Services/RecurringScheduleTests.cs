@@ -143,7 +143,7 @@ public class CalculateNextExecution_RecurringScheduleTests
         Assert.False(result.IsSuccess);
         Assert.Null(result.NextExecutionTime);
         Assert.Equal("", result.Description);
-        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
+        Assert.Equal("No valid daily execution found within the allowed range.", result.ErrorMessage);
     }
 
     [Fact]

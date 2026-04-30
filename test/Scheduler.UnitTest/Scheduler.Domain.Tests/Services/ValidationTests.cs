@@ -90,7 +90,7 @@ public class CalculateNextExecution_ValidationTests
         // Arrange
         var schedulerService = new SchedulerService(new IScheduleStrategy[]
         {
-            new OnceScheduleStrategy() // Recurring NOT registered
+            new OnceDailyScheduleStrategy() // Recurring NOT registered
         });
 
         var config = ScheduleConfigurationBuilder

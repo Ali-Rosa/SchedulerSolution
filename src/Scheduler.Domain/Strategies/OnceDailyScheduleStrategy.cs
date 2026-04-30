@@ -2,7 +2,7 @@
 
 namespace Scheduler.Domain.Strategies;
 
-public sealed class OnceScheduleStrategy : IScheduleStrategy
+public sealed class OnceDailyScheduleStrategy : IScheduleStrategy
 {
     public ScheduleStrategyKey Key => new(ScheduleType.Once, OccursType.Daily);
 

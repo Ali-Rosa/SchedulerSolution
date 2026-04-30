@@ -11,5 +11,4 @@ public record ScheduleConfiguration(
     string TimeZoneId,
     IntraDaySchedule? IntraDay,
     WeeklySchedule? Weekly
-
 );

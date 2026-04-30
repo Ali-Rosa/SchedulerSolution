@@ -30,8 +30,4 @@ public static class WeeklyCalendarRule
         return startOfWeek / 7;
     }
 
-    ///////////////////////////////////////////////////////////////////////
-
-
-
 }

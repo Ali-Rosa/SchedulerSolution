@@ -9,9 +9,9 @@ internal static class SchedulerServiceFactory
     {
         return new SchedulerService(new IScheduleStrategy[]
         {
-            new OnceScheduleStrategy(),
-            new RecurringScheduleStrategy(),
-            new WeeklyScheduleStrategy()
+            new OnceDailyScheduleStrategy(),
+            new RecurringDailyScheduleStrategy(),
+            new RecurringWeeklyScheduleStrategy()
         });
     }
 }

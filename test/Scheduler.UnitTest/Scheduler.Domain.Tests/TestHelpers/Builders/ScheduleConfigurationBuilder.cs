@@ -9,10 +9,12 @@ public sealed class ScheduleConfigurationBuilder
     private OccursType _occurs = OccursType.Daily;
     private int _every = 1;
     private string _timeZoneId = TimeZoneInfo.Utc.Id;
-
     private DateTimeOffset? _execution;
     private DateTimeOffset? _start;
     private DateTimeOffset? _end;
+    private IntraDaySchedule? _intraDay;
+    private WeeklySchedule? _weekly;
+
 
     public static ScheduleConfigurationBuilder Once()
         => new() { _type = ScheduleType.Once, _every = 0 };
@@ -71,6 +73,29 @@ public sealed class ScheduleConfigurationBuilder
         return this;
     }
 
+    public ScheduleConfigurationBuilder WithOccurs(OccursType occurs)
+    {
+        _occurs = occurs;
+        return this;
+    }
+
+    public ScheduleConfigurationBuilder WithIntraDay(IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
+    {
+        _intraDay = new IntraDaySchedule(unit, every, start, end);
+        return this;
+    }
+
+    public ScheduleConfigurationBuilder WithWeekly(int everyWeeks, params DayOfWeek[] days)
+    {
+        _weekly = new WeeklySchedule(everyWeeks, days);
+        _occurs = OccursType.Weekly;
+        return this;
+    }
+
+
+    /// <summary>
+    /// </summary>
+
     public ScheduleConfiguration Build()
     {
         return new ScheduleConfiguration(
@@ -82,8 +107,8 @@ public sealed class ScheduleConfigurationBuilder
             _start,
             _end,
             _timeZoneId,
-            null,
-            null
+            _intraDay,
+            _weekly
         );
     }
 }
