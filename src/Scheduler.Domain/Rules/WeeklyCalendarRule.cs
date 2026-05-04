@@ -4,7 +4,7 @@ namespace Scheduler.Domain.Rules;
 
 public static class WeeklyCalendarRule
 {
-    public static bool IsValidDay(DateOnly day, DateOnly startDate, WeeklySchedule schedule)
+    public static bool IsValidDay(DateOnly day, DateOnly startDate, ScheduleWeekly schedule)
     {
         if (!schedule.DaysOfWeek.Contains(day.DayOfWeek))
             return false;

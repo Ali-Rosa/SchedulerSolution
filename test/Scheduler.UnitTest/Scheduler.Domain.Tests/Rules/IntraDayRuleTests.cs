@@ -11,7 +11,10 @@ public class IntraDayRuleTests
         // Arrange
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new IntraDaySchedule(
+        var schedule = new ScheduleIntraDay(
+            OcursOnceEnable: false,
+            OnceTime: new TimeOnly(0, 0),
+            OcursEveryEnable: true,
             Unit: IntraDayFrequencyUnit.Hours,
             Every: 2,
             StartTime: new TimeOnly(4, 0),
@@ -35,7 +38,10 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new IntraDaySchedule(
+        var schedule = new ScheduleIntraDay(
+            OcursOnceEnable: false,
+            OnceTime: new TimeOnly(0, 0),
+            OcursEveryEnable: true,
             Unit: IntraDayFrequencyUnit.Hours,
             Every: 1,
             StartTime: new TimeOnly(10, 0),
@@ -57,7 +63,10 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new IntraDaySchedule(
+        var schedule = new ScheduleIntraDay(
+            OcursOnceEnable: false,
+            OnceTime: new TimeOnly(0, 0),
+            OcursEveryEnable: true,
             Unit: IntraDayFrequencyUnit.Hours,
             Every: 3,
             StartTime: new TimeOnly(4, 0),
@@ -80,7 +89,10 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new IntraDaySchedule(
+        var schedule = new ScheduleIntraDay(
+            OcursOnceEnable: false,
+            OnceTime: new TimeOnly(0, 0),
+            OcursEveryEnable: true,
             Unit: IntraDayFrequencyUnit.Hours,
             Every: 2,
             StartTime: new TimeOnly(4, 0),

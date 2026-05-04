@@ -24,11 +24,14 @@ public static class ScheduleConfigurationValidator
         if (!TryGetTimeZone(config.TimeZoneId, out var timeZone))
             return (false, $"Invalid TimeZoneId: {config.TimeZoneId}");
 
-        ///// Additional validation based on Occurs type
-        //if (config.Occurs == OccursType.Weekly && config.Weekly is null)
-        //    return (false, "Weekly configuration is required for Weekly occurs type.");
+        if (config.Occurs == OccursType.Daily && config.IntraDay is null)
+            return (false, "Daily Frecuency configuration is required for Daily occurs type.");
+
+        if (config.Occurs == OccursType.Weekly && config.Weekly is null)
+            return (false, "Weekly configuration is required for Weekly occurs type.");
 
         return (true, string.Empty);
+
     }
 
     private static bool TryGetTimeZone(string timeZoneId, out TimeZoneInfo? timeZone)

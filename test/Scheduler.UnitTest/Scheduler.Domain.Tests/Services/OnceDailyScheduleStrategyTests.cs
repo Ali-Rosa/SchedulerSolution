@@ -4,11 +4,11 @@ using Scheduler.Domain.Tests.TestHelpers.Factories;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_OnceScheduleTests
+public class CalculateNextExecution_OnceDailyScheduleStrategyTests
 {
     private readonly SchedulerService _service;
 
-    public CalculateNextExecution_OnceScheduleTests()
+    public CalculateNextExecution_OnceDailyScheduleStrategyTests()
     {
         _service = SchedulerServiceFactory.CreateDefault();
     }
@@ -20,7 +20,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var currentDate = DateTimeOffset.UtcNow;
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .Build();
 
 
@@ -43,7 +43,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var startDate = execution.AddDays(-10);
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(execution)
             .WithStartDate(startDate)
             .Build();
@@ -66,7 +66,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var startDate = execution.AddDays(9);
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(execution)
             .WithStartDate(startDate)
             .Build();
@@ -88,7 +88,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var execution = DateTimeOffset.UtcNow.AddDays(1);
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(execution)
             .WithStartDate(execution.AddDays(-2))
             .WithEndDate(execution.AddDays(-1))
@@ -111,7 +111,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var execution = DateTimeOffset.UtcNow.AddDays(1);
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(execution)
             .WithStartDate(execution.AddDays(-10))
             .Build();
@@ -133,7 +133,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var execution = DateTimeOffset.UtcNow.AddDays(1);
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(execution)
             .WithStartDate(execution.AddDays(-10))
             .WithEndDate(execution.AddDays(20))
@@ -158,7 +158,7 @@ public class CalculateNextExecution_OnceScheduleTests
         var executionDto = new DateTimeOffset(localExecution, timeZone.GetUtcOffset(localExecution));
 
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithExecution(executionDto)
             .WithStartDate(executionDto.AddDays(-1))
             .WithTimeZone(timeZoneId)

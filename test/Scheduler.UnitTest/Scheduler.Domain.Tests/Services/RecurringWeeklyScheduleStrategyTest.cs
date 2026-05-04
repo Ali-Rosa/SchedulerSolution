@@ -6,11 +6,11 @@ using Scheduler.Domain.Tests.TestHelpers.Factories;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_WeeklyScheduleTest
+public class CalculateNextExecution_RecurringWeeklyScheduleStrategyTest
 {
     private readonly SchedulerService _service;
 
-    public CalculateNextExecution_WeeklyScheduleTest()
+    public CalculateNextExecution_RecurringWeeklyScheduleStrategyTest()
     {
         _service = SchedulerServiceFactory.CreateDefault();
     }
@@ -23,10 +23,10 @@ public class CalculateNextExecution_WeeklyScheduleTest
         var referenceDate = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         var config = ScheduleConfigurationBuilder
-            .Recurring()
+            .RecurringDaily()
             .WithStartDate(referenceDate)
             .WithWeekly(2, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Friday)
-            .WithIntraDay(IntraDayFrequencyUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .WithIntraDay(false, new TimeOnly(0, 0), true, IntraDayFrequencyUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // ACT & ASSERT
@@ -37,7 +37,7 @@ public class CalculateNextExecution_WeeklyScheduleTest
         Assert.Equal(new DateTimeOffset(2020, 1, 2, 4, 0, 0, TimeSpan.Zero), result.NextExecutionTime);
 
         // 2. Si ya son las 04:00 del Jueves -> Próxima es las 06:00 del mismo día
-        now = result.NextExecutionTime.Value;
+        now = result.NextExecutionTime!.Value;
         result = _service.CalculateNextExecution(now, config);
         Assert.Equal(new DateTimeOffset(2020, 1, 2, 6, 0, 0, TimeSpan.Zero), result.NextExecutionTime);
 

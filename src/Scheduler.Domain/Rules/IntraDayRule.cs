@@ -4,7 +4,7 @@ namespace Scheduler.Domain.Rules;
 
 public static class IntraDayRule
 {
-    public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, IntraDaySchedule schedule, TimeZoneInfo timeZone)
+    public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleIntraDay schedule, TimeZoneInfo timeZone)
     {
         var start = day.ToDateTime(schedule.StartTime);
         var end = day.ToDateTime(schedule.EndTime);

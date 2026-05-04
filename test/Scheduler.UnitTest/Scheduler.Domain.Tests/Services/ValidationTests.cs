@@ -31,7 +31,7 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .Disabled()
             .Build();
 
@@ -50,7 +50,7 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithInvalidScheduleType()
             .Build();
 
@@ -69,7 +69,7 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithInvalidOccursType()
             .Build();
 
@@ -94,7 +94,7 @@ public class CalculateNextExecution_ValidationTests
         });
 
         var config = ScheduleConfigurationBuilder
-            .Recurring()
+            .RecurringDaily()
             .Build();
 
         // Act
@@ -111,7 +111,7 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithEvery(-1)
             .Build();
 
@@ -130,7 +130,7 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder
-            .Once()
+            .OnceDaily()
             .WithTimeZone("Invalid/Zone")
             .Build();
 

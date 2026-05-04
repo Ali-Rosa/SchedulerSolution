@@ -9,6 +9,6 @@ public record ScheduleConfiguration(
     DateTimeOffset? StartDateLocal,
     DateTimeOffset? EndDateLocal,
     string TimeZoneId,
-    IntraDaySchedule? IntraDay,
-    WeeklySchedule? Weekly
+    ScheduleIntraDay? IntraDay,
+    ScheduleWeekly? Weekly
 );

@@ -10,7 +10,7 @@ public class WeeklyCalendarRuleTests
     public void Monday_and_Thursday_are_valid_on_first_week()
     {
         var start = new DateOnly(2020, 1, 1); // Wednesday
-        var schedule = new WeeklySchedule(
+        var schedule = new ScheduleWeekly(
             EveryWeeks: 2,
             DaysOfWeek: new[] { DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Friday }
         );
@@ -24,7 +24,7 @@ public class WeeklyCalendarRuleTests
     public void Skips_week_when_not_multiple_of_every_weeks()
     {
         var start = new DateOnly(2020, 1, 1);
-        var schedule = new WeeklySchedule(
+        var schedule = new ScheduleWeekly(
             EveryWeeks: 2,
             DaysOfWeek: new[] { DayOfWeek.Monday }
         );

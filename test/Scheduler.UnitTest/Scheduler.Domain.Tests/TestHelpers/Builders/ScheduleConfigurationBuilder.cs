@@ -12,14 +12,14 @@ public sealed class ScheduleConfigurationBuilder
     private DateTimeOffset? _execution;
     private DateTimeOffset? _start;
     private DateTimeOffset? _end;
-    private IntraDaySchedule? _intraDay;
-    private WeeklySchedule? _weekly;
+    private ScheduleIntraDay? _intraDay;
+    private ScheduleWeekly? _weekly;
 
 
-    public static ScheduleConfigurationBuilder Once()
+    public static ScheduleConfigurationBuilder OnceDaily()
         => new() { _type = ScheduleType.Once, _every = 0 };
 
-    public static ScheduleConfigurationBuilder Recurring()
+    public static ScheduleConfigurationBuilder RecurringDaily()
         => new() { _type = ScheduleType.Recurring, _every = 1 };
 
     public static ScheduleConfigurationBuilder RecurringWeekly()
@@ -79,15 +79,29 @@ public sealed class ScheduleConfigurationBuilder
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithIntraDay(IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
+    public ScheduleConfigurationBuilder WithIntraDay(bool ocursOnceEnable, TimeOnly onceTime, bool ocursEveryEnable, IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
     {
-        _intraDay = new IntraDaySchedule(unit, every, start, end);
+        _intraDay = new ScheduleIntraDay(ocursOnceEnable, onceTime, ocursEveryEnable, unit, every, start, end);
         return this;
     }
 
+    public ScheduleConfigurationBuilder WithIntraDayOnce(TimeOnly onceTime)
+    {
+        _intraDay = new ScheduleIntraDay(true, onceTime, false, default, 0, default, default);
+        return this;
+    }
+
+    public ScheduleConfigurationBuilder WithIntraDayEvery(IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
+    {
+        _intraDay = new ScheduleIntraDay(false, default, true, unit, every, start, end);
+        return this;
+    }
+
+
+
     public ScheduleConfigurationBuilder WithWeekly(int everyWeeks, params DayOfWeek[] days)
     {
-        _weekly = new WeeklySchedule(everyWeeks, days);
+        _weekly = new ScheduleWeekly(everyWeeks, days);
         _occurs = OccursType.Weekly;
         return this;
     }
