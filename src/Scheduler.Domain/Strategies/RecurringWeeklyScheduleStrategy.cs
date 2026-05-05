@@ -14,7 +14,7 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
 
         var currentLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
 
-        var seriesStartLocal = TimeZoneInfo.ConvertTime(config.StartDateLocal ?? config.ExecutionDateTimeLocal ?? currentDateUtc, timeZone);
+        var seriesStartLocal = TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal ?? config.ExecutionDateTimeLocal ?? currentDateUtc, timeZone);
 
         var searchCursorLocal = currentLocal > seriesStartLocal ? currentLocal : seriesStartLocal;
 
@@ -32,7 +32,7 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
                 // Filtrar la primera que sea futura
                 var nextExecution = dayExecutions
                     .Where(e => e > currentDateUtc)
-                    .Where(e => !config.EndDateLocal.HasValue || e <= config.EndDateLocal.Value)
+                    .Where(e => !config.LimitsEndDateLocal.HasValue || e <= config.LimitsEndDateLocal.Value)
                     .OrderBy(e => e)
                     .FirstOrDefault();
 
@@ -42,7 +42,7 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
                 }
             }
 
-            if (config.EndDateLocal.HasValue && searchCursorLocal > config.EndDateLocal.Value)
+            if (config.LimitsEndDateLocal.HasValue && searchCursorLocal > config.LimitsEndDateLocal.Value)
                 break;
 
             searchCursorLocal = new DateTimeOffset(currentDay.AddDays(1).ToDateTime(TimeOnly.MinValue), timeZone.GetUtcOffset(searchCursorLocal.DateTime));
@@ -53,9 +53,9 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
 
     private IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleConfiguration config, TimeZoneInfo timeZone)
     {
-        if (config.IntraDay is not null)
+        if (config.DailyFrecuency is not null)
         {
-            return IntraDayRule.GetExecutionsForDay(day, config.IntraDay, timeZone);
+            return DailyFrecuencyRule.GetExecutionsForDay(day, config.DailyFrecuency, timeZone);
         }
 
         var time = config.ExecutionDateTimeLocal?.TimeOfDay ?? TimeSpan.Zero;
@@ -70,8 +70,8 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
 
         var desc = $"Occurs every {config.Weekly.EveryWeeks} week(s) on {days}. ";
 
-        if (config.IntraDay != null)
-            desc += $"Every {config.IntraDay.Every} {config.IntraDay.Unit.ToString().ToLower()} ";
+        if (config.DailyFrecuency != null)
+            desc += $"Every {config.DailyFrecuency.FrequencyInterval} {config.DailyFrecuency.IntervalUnit.ToString().ToLower()} ";
 
         desc += $"at {local:HH:mm}. Next: {local:dd/MM/yyyy}";
 

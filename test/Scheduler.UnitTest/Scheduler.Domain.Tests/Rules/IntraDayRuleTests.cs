@@ -11,12 +11,12 @@ public class IntraDayRuleTests
         // Arrange
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new ScheduleIntraDay(
-            OcursOnceEnable: false,
+        var schedule = new ScheduleDailyFrecuency(
+            OccursOnceEnable: false,
             OnceTime: new TimeOnly(0, 0),
-            OcursEveryEnable: true,
-            Unit: IntraDayFrequencyUnit.Hours,
-            Every: 2,
+            OccursEveryEnable: true,
+            IntervalUnit: TimeIntervalUnit.Hours,
+            FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0),
             EndTime: new TimeOnly(8, 0)
         );
@@ -24,7 +24,7 @@ public class IntraDayRuleTests
         var timeZone = TimeZoneInfo.Utc;
 
         // Act
-        var executions = IntraDayRule .GetExecutionsForDay(day, schedule, timeZone) .ToList();
+        var executions = DailyFrecuencyRule .GetExecutionsForDay(day, schedule, timeZone) .ToList();
 
         // Assert
         Assert.Equal(3, executions.Count);
@@ -38,19 +38,19 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new ScheduleIntraDay(
-            OcursOnceEnable: false,
+        var schedule = new ScheduleDailyFrecuency(
+            OccursOnceEnable: false,
             OnceTime: new TimeOnly(0, 0),
-            OcursEveryEnable: true,
-            Unit: IntraDayFrequencyUnit.Hours,
-            Every: 1,
+            OccursEveryEnable: true,
+            IntervalUnit: TimeIntervalUnit.Hours,
+            FrequencyInterval: 1,
             StartTime: new TimeOnly(10, 0),
             EndTime: new TimeOnly(10, 0)
         );
 
         var timeZone = TimeZoneInfo.Utc;
 
-        var executions = IntraDayRule
+        var executions = DailyFrecuencyRule
             .GetExecutionsForDay(day, schedule, timeZone)
             .ToList();
 
@@ -63,19 +63,19 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new ScheduleIntraDay(
-            OcursOnceEnable: false,
+        var schedule = new ScheduleDailyFrecuency(
+            OccursOnceEnable: false,
             OnceTime: new TimeOnly(0, 0),
-            OcursEveryEnable: true,
-            Unit: IntraDayFrequencyUnit.Hours,
-            Every: 3,
+            OccursEveryEnable: true,
+            IntervalUnit: TimeIntervalUnit.Hours,
+            FrequencyInterval: 3,
             StartTime: new TimeOnly(4, 0),
             EndTime: new TimeOnly(8, 0)
         );
 
         var timeZone = TimeZoneInfo.Utc;
 
-        var executions = IntraDayRule
+        var executions = DailyFrecuencyRule
             .GetExecutionsForDay(day, schedule, timeZone)
             .ToList();
 
@@ -89,19 +89,19 @@ public class IntraDayRuleTests
     {
         var day = new DateOnly(2020, 1, 1);
 
-        var schedule = new ScheduleIntraDay(
-            OcursOnceEnable: false,
+        var schedule = new ScheduleDailyFrecuency(
+            OccursOnceEnable: false,
             OnceTime: new TimeOnly(0, 0),
-            OcursEveryEnable: true,
-            Unit: IntraDayFrequencyUnit.Hours,
-            Every: 2,
+            OccursEveryEnable: true,
+            IntervalUnit: TimeIntervalUnit.Hours,
+            FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0),
             EndTime: new TimeOnly(4, 0)
         );
 
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
 
-        var execution = IntraDayRule
+        var execution = DailyFrecuencyRule
             .GetExecutionsForDay(day, schedule, timeZone)
             .Single();
 

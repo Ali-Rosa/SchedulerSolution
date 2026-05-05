@@ -7,23 +7,19 @@ public sealed class ScheduleConfigurationBuilder
     private bool _enabled = true;
     private ScheduleType _type = ScheduleType.Once;
     private OccursType _occurs = OccursType.Daily;
-    private int _every = 1;
+    private int _recursEvery = 1;
     private string _timeZoneId = TimeZoneInfo.Utc.Id;
-    private DateTimeOffset? _execution;
-    private DateTimeOffset? _start;
-    private DateTimeOffset? _end;
-    private ScheduleIntraDay? _intraDay;
+    private DateTimeOffset? _executionDateTimeLocal;
+    private DateTimeOffset? _limitsStartDateLocal;
+    private DateTimeOffset? _limitsEndDateLocal;
+    private ScheduleDailyFrecuency? _dailyFrecuency;
     private ScheduleWeekly? _weekly;
 
+    public static ScheduleConfigurationBuilder OnceDaily() => new() { _type = ScheduleType.Once, _recursEvery = 0 };
 
-    public static ScheduleConfigurationBuilder OnceDaily()
-        => new() { _type = ScheduleType.Once, _every = 0 };
+    public static ScheduleConfigurationBuilder RecurringDaily() => new() { _type = ScheduleType.Recurring, _recursEvery = 1 };
 
-    public static ScheduleConfigurationBuilder RecurringDaily()
-        => new() { _type = ScheduleType.Recurring, _every = 1 };
-
-    public static ScheduleConfigurationBuilder RecurringWeekly()
-        => new() { _type = ScheduleType.Recurring, _every = 1 };
+    public static ScheduleConfigurationBuilder RecurringWeekly() => new() { _type = ScheduleType.Recurring, _recursEvery = 1 };
 
     public ScheduleConfigurationBuilder Disabled()
     {
@@ -31,69 +27,69 @@ public sealed class ScheduleConfigurationBuilder
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithInvalidScheduleType()
+    public ScheduleConfigurationBuilder With_Invalid_ScheduleType()
     {
         _type = (ScheduleType)1222;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithInvalidOccursType()
+    public ScheduleConfigurationBuilder With_Invalid_OccursType()
     {
         _occurs = (OccursType)1999;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithEvery(int value)
+    public ScheduleConfigurationBuilder With_RecursEvery(int recursEvery)
     {
-        _every = value;
+        _recursEvery = recursEvery;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithTimeZone(string timeZoneId)
+    public ScheduleConfigurationBuilder With_TimeZoneId(string timeZoneId)
     {
         _timeZoneId = timeZoneId;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithExecution(DateTimeOffset value)
+    public ScheduleConfigurationBuilder With_ExecutionDateTimeLocal(DateTimeOffset executionDateTimeLocal)
     {
-        _execution = value;
+        _executionDateTimeLocal = executionDateTimeLocal;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithStartDate(DateTimeOffset value)
+    public ScheduleConfigurationBuilder With_Limits_StartDateLocal(DateTimeOffset limitsStartDateLocal)
     {
-        _start = value;
+        _limitsStartDateLocal = limitsStartDateLocal;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithEndDate(DateTimeOffset value)
+    public ScheduleConfigurationBuilder With_Limits_EndDateLocal(DateTimeOffset limitsEndDateLocal)
     {
-        _end = value;
+        _limitsEndDateLocal = limitsEndDateLocal;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithOccurs(OccursType occurs)
+    public ScheduleConfigurationBuilder With_Occurs(OccursType occurs)
     {
         _occurs = occurs;
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithIntraDay(bool ocursOnceEnable, TimeOnly onceTime, bool ocursEveryEnable, IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
+    public ScheduleConfigurationBuilder With_DailyFrecuency(bool ocursOnceEnable, TimeOnly onceTime, bool ocursEveryEnable, TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
     {
-        _intraDay = new ScheduleIntraDay(ocursOnceEnable, onceTime, ocursEveryEnable, unit, every, start, end);
+        _dailyFrecuency = new ScheduleDailyFrecuency(ocursOnceEnable, onceTime, ocursEveryEnable, intervalUnit, frequencyInterval, startTime, endTime);
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithIntraDayOnce(TimeOnly onceTime)
+    public ScheduleConfigurationBuilder With_DailyFrecuency_OccursOnce(TimeOnly onceTime)
     {
-        _intraDay = new ScheduleIntraDay(true, onceTime, false, default, 0, default, default);
+        _dailyFrecuency = new ScheduleDailyFrecuency(true, onceTime, false, default, 0, default, default);
         return this;
     }
 
-    public ScheduleConfigurationBuilder WithIntraDayEvery(IntraDayFrequencyUnit unit, int every, TimeOnly start, TimeOnly end)
+    public ScheduleConfigurationBuilder With_DailyFrecuency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
     {
-        _intraDay = new ScheduleIntraDay(false, default, true, unit, every, start, end);
+        _dailyFrecuency = new ScheduleDailyFrecuency(false, default, true, intervalUnit, frequencyInterval, startTime, endTime);
         return this;
     }
 
@@ -108,6 +104,7 @@ public sealed class ScheduleConfigurationBuilder
 
 
     /// <summary>
+    /// Builds the ScheduleConfiguration instance.
     /// </summary>
 
     public ScheduleConfiguration Build()
@@ -115,13 +112,13 @@ public sealed class ScheduleConfigurationBuilder
         return new ScheduleConfiguration(
             _enabled,
             _type,
-            _execution,
+            _executionDateTimeLocal,
             _occurs,
-            _every,
-            _start,
-            _end,
+            _recursEvery,
+            _limitsStartDateLocal,
+            _limitsEndDateLocal,
             _timeZoneId,
-            _intraDay,
+            _dailyFrecuency,
             _weekly
         );
     }

@@ -7,22 +7,16 @@ namespace Scheduler.Domain.Tests.Services;
 public class CalculateNextExecution_OnceDailyScheduleStrategyTests
 {
     private readonly SchedulerService _service;
-
-    public CalculateNextExecution_OnceDailyScheduleStrategyTests()
-    {
-        _service = SchedulerServiceFactory.CreateDefault();
-    }
+    public CalculateNextExecution_OnceDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
     public void CalculateOnce_WithDateTimeNull_ReturnsSuccess()
     {
         // Arrange
-        var currentDate = DateTimeOffset.UtcNow;
-
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
             .Build();
-
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -39,17 +33,18 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
     {
 
         // Arrange
-        var execution = DateTimeOffset.UtcNow;
-        var startDate = execution.AddDays(-10);
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(-1);
+        var startDate = execution.AddDays(-20);
 
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(execution)
-            .WithStartDate(startDate)
+            .With_ExecutionDateTimeLocal(execution)
+            .With_Limits_StartDateLocal(startDate)
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -62,17 +57,18 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
     public void CalculateOnce_WithDatetimeBeforeStartdateDate_ReturnsError()
     {
         // Arrange
-        var execution = DateTimeOffset.UtcNow.AddDays(1);
-        var startDate = execution.AddDays(9);
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(1);
+        var startDate = execution.AddDays(10);
 
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(execution)
-            .WithStartDate(startDate)
+            .With_ExecutionDateTimeLocal(execution)
+            .With_Limits_StartDateLocal(startDate)
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -85,17 +81,17 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
     public void CalculateOnce_WithDatetimeAfterEndDate_ReturnsError()
     {
         // Arrange
-        var execution = DateTimeOffset.UtcNow.AddDays(1);
-
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(1);
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(execution)
-            .WithStartDate(execution.AddDays(-2))
-            .WithEndDate(execution.AddDays(-1))
+            .With_ExecutionDateTimeLocal(execution)
+            .With_Limits_StartDateLocal(execution.AddDays(-10))
+            .With_Limits_EndDateLocal(execution.AddDays(-1))
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -108,16 +104,16 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
     public void CalculateOnce_WithValidFutureDate_ReturnsSuccess()
     {
         // Arrange
-        var execution = DateTimeOffset.UtcNow.AddDays(1);
-
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(1);
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(execution)
-            .WithStartDate(execution.AddDays(-10))
+            .With_ExecutionDateTimeLocal(execution)
+            .With_Limits_StartDateLocal(execution.AddDays(-10))
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -130,17 +126,17 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
     public void CalculateOnce_WithValidDateInRange_ReturnsSuccess()
     {
         // Arrange
-        var execution = DateTimeOffset.UtcNow.AddDays(1);
-
+        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(1);
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(execution)
-            .WithStartDate(execution.AddDays(-10))
-            .WithEndDate(execution.AddDays(20))
+            .With_ExecutionDateTimeLocal(execution)
+            .With_Limits_StartDateLocal(execution.AddDays(-10))
+            .With_Limits_EndDateLocal(execution.AddDays(20))
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -159,9 +155,9 @@ public class CalculateNextExecution_OnceDailyScheduleStrategyTests
 
         var config = ScheduleConfigurationBuilder
             .OnceDaily()
-            .WithExecution(executionDto)
-            .WithStartDate(executionDto.AddDays(-1))
-            .WithTimeZone(timeZoneId)
+            .With_ExecutionDateTimeLocal(executionDto)
+            .With_Limits_StartDateLocal(executionDto.AddDays(-1))
+            .With_TimeZoneId(timeZoneId)
             .Build();
 
         // Act

@@ -19,8 +19,8 @@ public sealed class OnceDailyScheduleStrategy : IScheduleStrategy
                 candidate = config.ExecutionDateTimeLocal.Value;
         }
 
-        if ((config.StartDateLocal.HasValue && candidate < config.StartDateLocal.Value)
-            || (config.EndDateLocal.HasValue && candidate > config.EndDateLocal.Value))
+        if ((config.LimitsStartDateLocal.HasValue && candidate < config.LimitsStartDateLocal.Value)
+            || (config.LimitsEndDateLocal.HasValue && candidate > config.LimitsEndDateLocal.Value))
             return new SchedulerResponse("The execution date is outside the allowed range.");
 
         // OUTPUTS
@@ -29,9 +29,9 @@ public sealed class OnceDailyScheduleStrategy : IScheduleStrategy
         var description = $"Occurs once. Schedule will be used on {candidateLocalTime:dd/MM/yyyy} "
             + $"at {candidateLocalTime:HH:mm} ";
 
-        if (config.StartDateLocal.HasValue)
+        if (config.LimitsStartDateLocal.HasValue)
         {
-            DateTimeOffset StartDateCandidatoLocalTime = TimeZoneInfo.ConvertTime(config.StartDateLocal!.Value, timeZone!);
+            DateTimeOffset StartDateCandidatoLocalTime = TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal!.Value, timeZone!);
             description += $"starting on {StartDateCandidatoLocalTime:dd/MM/yyyy}";
         }      
 

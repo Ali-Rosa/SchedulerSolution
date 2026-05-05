@@ -5,10 +5,10 @@ public record ScheduleConfiguration(
     ScheduleType Type,
     DateTimeOffset? ExecutionDateTimeLocal,
     OccursType Occurs,
-    int Every,
-    DateTimeOffset? StartDateLocal,
-    DateTimeOffset? EndDateLocal,
+    int RecursEvery,
+    DateTimeOffset? LimitsStartDateLocal,
+    DateTimeOffset? LimitsEndDateLocal,
     string TimeZoneId,
-    ScheduleIntraDay? IntraDay,
+    ScheduleDailyFrecuency? DailyFrecuency,
     ScheduleWeekly? Weekly
 );

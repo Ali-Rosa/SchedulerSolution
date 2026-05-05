@@ -9,11 +9,7 @@ namespace Scheduler.Domain.Tests.Services;
 public class CalculateNextExecution_RecurringWeeklyScheduleStrategyTest
 {
     private readonly SchedulerService _service;
-
-    public CalculateNextExecution_RecurringWeeklyScheduleStrategyTest()
-    {
-        _service = SchedulerServiceFactory.CreateDefault();
-    }
+    public CalculateNextExecution_RecurringWeeklyScheduleStrategyTest() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
     public void Weekly_Every2Weeks_MonThuFri_WithIntraDay_ReturnsCorrectSequence()
@@ -24,9 +20,9 @@ public class CalculateNextExecution_RecurringWeeklyScheduleStrategyTest
 
         var config = ScheduleConfigurationBuilder
             .RecurringDaily()
-            .WithStartDate(referenceDate)
+            .With_Limits_StartDateLocal(referenceDate)
             .WithWeekly(2, DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Friday)
-            .WithIntraDay(false, new TimeOnly(0, 0), true, IntraDayFrequencyUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrecuency(false, new TimeOnly(0, 0), true, TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // ACT & ASSERT

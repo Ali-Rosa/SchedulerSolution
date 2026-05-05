@@ -1,7 +1,7 @@
 ﻿
 namespace Scheduler.Domain.Models;
 
-public enum IntraDayFrequencyUnit
+public enum TimeIntervalUnit
 {
     Hours,
     Minutes,
