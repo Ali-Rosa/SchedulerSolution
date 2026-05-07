@@ -1,4 +1,4 @@
-namespace Scheduler.Domain.Models;
+using Scheduler.Domain.Models;
 
 public record ScheduleConfiguration(
     bool Enabled,
@@ -9,6 +9,8 @@ public record ScheduleConfiguration(
     DateTimeOffset? LimitsStartDateLocal,
     DateTimeOffset? LimitsEndDateLocal,
     string TimeZoneId,
-    ScheduleDailyFrecuency? DailyFrecuency,
-    ScheduleWeekly? Weekly
+    string Locale = "en-US",
+    DayOfWeek? FirstDayOfWeek = null,
+    ScheduleDailyFrecuency? DailyFrecuency = null,
+    ScheduleWeekly? Weekly = null
 );

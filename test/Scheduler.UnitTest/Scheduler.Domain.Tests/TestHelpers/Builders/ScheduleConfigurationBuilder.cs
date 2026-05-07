@@ -9,6 +9,8 @@ public sealed class ScheduleConfigurationBuilder
     private OccursType _occurs = OccursType.Daily;
     private int _recursEvery = 1;
     private string _timeZoneId = TimeZoneInfo.Utc.Id;
+    private string _locale = "en-US";
+    private DayOfWeek? _firstDayOfWeek = null;
     private DateTimeOffset? _executionDateTimeLocal;
     private DateTimeOffset? _limitsStartDateLocal;
     private DateTimeOffset? _limitsEndDateLocal;
@@ -95,12 +97,12 @@ public sealed class ScheduleConfigurationBuilder
 
 
 
-    public ScheduleConfigurationBuilder WithWeekly(int everyWeeks, params DayOfWeek[] days)
-    {
-        _weekly = new ScheduleWeekly(everyWeeks, days);
-        _occurs = OccursType.Weekly;
-        return this;
-    }
+    //public ScheduleConfigurationBuilder WithWeekly(int everyWeeks, params DayOfWeek[] days)
+    //{
+    //    _weekly = new ScheduleWeekly(days);
+    //    _occurs = OccursType.Weekly;
+    //    return this;
+    //}
 
 
     /// <summary>
@@ -118,6 +120,8 @@ public sealed class ScheduleConfigurationBuilder
             _limitsStartDateLocal,
             _limitsEndDateLocal,
             _timeZoneId,
+            _locale,
+            _firstDayOfWeek,
             _dailyFrecuency,
             _weekly
         );

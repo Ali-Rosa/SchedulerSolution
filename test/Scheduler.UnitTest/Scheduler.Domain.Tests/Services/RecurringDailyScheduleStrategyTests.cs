@@ -11,7 +11,7 @@ public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
     public CalculateNextExecution_RecurringDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
-    public void Calculate_Recurring_Daily_With_RecursEvery_Less_Than_Or_Equal_To_Zero_ReturnsError()
+    public void Calculate_NextExecution_Recurring_Daily_With_RecursEvery_Less_Than_Or_Equal_To_Zero_ReturnsError()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
@@ -37,16 +37,14 @@ public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
     }
 
     [Fact]
-    public void Calculate_Recurring_Daily_With_DailyFrecuency_IsNull_ReturnsError()
+    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_IsNull_ReturnsError()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(2);
-        var startDate = execution.AddDays(-20);
+        var startDate = currentDate.AddDays(-15);
 
         var config = ScheduleConfigurationBuilder
             .RecurringDaily()
-            .With_ExecutionDateTimeLocal(execution)
             .With_Limits_StartDateLocal(startDate)
             .Build();
 
@@ -61,16 +59,14 @@ public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
     }
 
     [Fact]
-    public void Calculate_Recurring_Daily_With_DailyFrecuency_With_OccursEveryEnable_In_Hours_ReturnsSuccess()
+    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OccursEveryEnable_In_Hours_ReturnsSuccess()
     {
         // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(2);
-        var startDate = execution.AddDays(-19);
+        var currentDate = new DateTimeOffset(2026, 5, 8, 0, 0, 0, TimeSpan.Zero);
+        var startDate = currentDate.AddDays(-15);
 
         var config = ScheduleConfigurationBuilder
             .RecurringDaily()
-            .With_ExecutionDateTimeLocal(execution)
             .With_RecursEvery(3)
             .With_DailyFrecuency_OccursEvery(
                 intervalUnit: TimeIntervalUnit.Hours,
@@ -90,16 +86,14 @@ public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
     }
 
     [Fact]
-    public void CalculateRecurringDaily_WithDailyFrecuencyWithOcursEveryInMinutes_ReturnsSuccess()
+    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OcursEvery_In_Minutes_ReturnsSuccess()
     {
         // Arrange
-        var execution = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
-        var currentDate = execution.AddDays(-2);
-        var startDate = execution.AddDays(-12);
+        var currentDate = new DateTimeOffset(2026, 5, 2, 0, 0, 0, TimeSpan.Zero);
+        var startDate = currentDate.AddDays(-15);
 
         var config = ScheduleConfigurationBuilder
             .RecurringDaily()
-            .With_ExecutionDateTimeLocal(execution)
             .With_RecursEvery(2)
             .With_DailyFrecuency_OccursEvery(
                 intervalUnit: TimeIntervalUnit.Minutes,
@@ -115,7 +109,37 @@ public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(new DateTimeOffset(2026, 5, 2, 0, 10, 0, TimeSpan.Zero) ,result.NextExecutionTime);
         Assert.Equal("Occurs every 2 days. Every 2 minutes at 00:10. Starting on 02/05/2026", result.Description);
+        Assert.Equal("", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OcursEvery_In_Seconds_ReturnsSuccess()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 2, 0, 0, 0, TimeSpan.Zero);
+        var startDate = currentDate.AddDays(-15);
+
+        var config = ScheduleConfigurationBuilder
+            .RecurringDaily()
+            .With_RecursEvery(2)
+            .With_DailyFrecuency_OccursEvery(
+                intervalUnit: TimeIntervalUnit.Seconds,
+                frequencyInterval: 25,
+                startTime: new TimeOnly(4, 0),
+                endTime: new TimeOnly(8, 0))
+            .With_Limits_StartDateLocal(startDate)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.NextExecutionTime);
+        Assert.Equal(new DateTimeOffset(2026, 5, 2, 4, 0, 0, TimeSpan.Zero), result.NextExecutionTime);
+        Assert.Equal("Occurs every 2 days. Every 25 seconds at 04:00. Starting on 02/05/2026", result.Description);
         Assert.Equal("", result.ErrorMessage);
     }
 
