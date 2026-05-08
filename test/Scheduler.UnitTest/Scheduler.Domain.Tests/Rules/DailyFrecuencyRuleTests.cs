@@ -3,7 +3,7 @@ using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Tests.Rules;
 
-public class IntraDayRuleTests
+public class DailyFrecuencyRuleTests
 {
     [Fact]
     public void Generates_executions_every_2_hours_within_range()
@@ -109,5 +109,87 @@ public class IntraDayRuleTests
         Assert.Equal(new TimeOnly(3, 0), TimeOnly.FromDateTime(execution.UtcDateTime));
     }
 
+    [Fact]
+    public void Generates_executions_every_15_minutes()
+    {
+        // Arrange
+        var day = new DateOnly(2020, 1, 1);
+        var schedule = new ScheduleDailyFrecuency(
+            false, default, true,
+            TimeIntervalUnit.Minutes, 15, // Every 15 minutes
+            new TimeOnly(8, 0), new TimeOnly(9, 0)
+        );
+
+        // Act
+        var executions = DailyFrecuencyRule.GetExecutionsForDay(day, schedule, TimeZoneInfo.Utc).ToList();
+
+        // Assert: 8:00, 8:15, 8:30, 8:45, 9:00 -> 5 executions
+        Assert.Equal(5, executions.Count);
+        Assert.Equal(new TimeOnly(8, 45), TimeOnly.FromDateTime(executions[3].UtcDateTime));
+    }
+
+    [Fact]
+    public void Generates_executions_every_30_seconds()
+    {
+        // Arrange
+        var day = new DateOnly(2020, 1, 1);
+        var schedule = new ScheduleDailyFrecuency(
+            false
+            , default, true,
+            TimeIntervalUnit.Seconds, 30,
+            new TimeOnly(12, 0, 0), new TimeOnly(12, 1, 0) // One minute of range
+        );
+
+        // Act
+        var executions = DailyFrecuencyRule.GetExecutionsForDay(day, schedule, TimeZoneInfo.Utc).ToList();
+
+        // Assert: 12:00:00, 12:00:30, 12:01:00 -> 3 executions
+        Assert.Equal(3, executions.Count);
+        Assert.Equal(0, executions[2].Second); // Exactly second 0 of the next minute
+    }
+
+    [Fact]
+    public void Returns_empty_list_when_start_time_is_after_end_time()
+    {
+        var day = new DateOnly(2020, 1, 1);
+        var schedule = new ScheduleDailyFrecuency(
+            false, default, true,
+            TimeIntervalUnit.Hours, 1,
+            new TimeOnly(22, 0), new TimeOnly(8, 0)
+        );
+
+        var executions = DailyFrecuencyRule.GetExecutionsForDay(day, schedule, TimeZoneInfo.Utc).ToList();
+
+        Assert.Empty(executions);
+    }
+
+    [Fact]
+    public void Handles_Daylight_Saving_Time_Spring_Forward()
+    {
+        // March 31, 2024: The clock jumps from 02:00 to 03:00 in Europe
+        var day = new DateOnly(2024, 3, 31);
+        var schedule = new ScheduleDailyFrecuency(
+            false
+            , default
+            , true
+            , TimeIntervalUnit.Hours
+            , 1
+            , new TimeOnly(1, 30), new TimeOnly(3, 30)
+        );
+
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+
+        // Act
+        var executions = DailyFrecuencyRule.GetExecutionsForDay(day, schedule, timeZone).ToList();
+
+        // Assert:
+        // 01:30 local time -> EXISTS (00:30 UTC)
+        // 02:30 local time -> DOES NOT EXIST (Should be skipped)
+        // 03:30 local time -> EXISTS (01:30 UTC)
+
+        Assert.Equal(2, executions.Count);
+        Assert.Equal(new TimeOnly(0, 30), TimeOnly.FromDateTime(executions[0].UtcDateTime));
+        Assert.Equal(new TimeOnly(1, 30), TimeOnly.FromDateTime(executions[1].UtcDateTime));
+    }
 
 }

@@ -63,7 +63,16 @@ public static class ScheduleEngine
 
     private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, ScheduleConfiguration config, TimeZoneInfo timeZone)
     {
-        var time = config.ExecutionDateTimeLocal?.TimeOfDay ?? TimeSpan.Zero;
+        TimeSpan time;
+
+        if (config.Type == ScheduleType.Recurring)
+        {
+            time = TimeSpan.Zero; // 00:00:00
+        }
+        else
+        {
+            time = config.ExecutionDateTimeLocal?.TimeOfDay ?? TimeSpan.Zero;
+        }
         var localDateTime = day.ToDateTime(TimeOnly.FromTimeSpan(time));
         return new[] { new DateTimeOffset(localDateTime, timeZone.GetUtcOffset(localDateTime)) };
     }

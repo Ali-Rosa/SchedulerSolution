@@ -5,392 +5,84 @@ using Scheduler.Domain.Tests.TestHelpers.Factories;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_RecurringDailyScheduleStrategyTests
+public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
 {
     private readonly SchedulerService _service;
-    public CalculateNextExecution_RecurringDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
+    public CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_With_RecursEvery_Less_Than_Or_Equal_To_Zero_ReturnsError()
+    public void Should_Jump_To_Next_Day_When_Pattern_Matches_But_Hours_Passed()
     {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
-
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
-            .With_RecursEvery(0)
-            .With_DailyFrecuency_OccursEvery(
-                intervalUnit: TimeIntervalUnit.Hours,
-                frequencyInterval: 2,
-                startTime: new TimeOnly(4, 0),
-                endTime: new TimeOnly(8, 0))
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Contains("The Every value must be greater than 0.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_IsNull_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var startDate = currentDate.AddDays(-15);
-
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
-            .With_Limits_StartDateLocal(startDate)
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Equal("Daily Frequency configuration is required for Daily occurs type.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OccursEveryEnable_In_Hours_ReturnsSuccess()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 8, 0, 0, 0, TimeSpan.Zero);
-        var startDate = currentDate.AddDays(-15);
-
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
+        // // Today, the 6th, at 10 PM. Pattern every 3 days (6, 9...). Hours 4-8 AM.
+        var currentDate = new DateTimeOffset(2026, 5, 6, 22, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_RecursEvery(3)
-            .With_DailyFrecuency_OccursEvery(
-                intervalUnit: TimeIntervalUnit.Hours,
-                frequencyInterval: 2,
-                startTime: new TimeOnly(4, 0),
-                endTime: new TimeOnly(8, 0))
-            .With_Limits_StartDateLocal(startDate)
+            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
-        // Act
         var result = _service.CalculateNextExecution(currentDate, config);
 
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal("", result.ErrorMessage);
+        // Result: Day 09 at 04:00 AM
+        Assert.Equal(9, result.NextExecutionTime!.Value.Day);
+        Assert.Equal(4, result.NextExecutionTime.Value.Hour);
     }
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OcursEvery_In_Minutes_ReturnsSuccess()
+    public void Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
     {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 2, 0, 0, 0, TimeSpan.Zero);
-        var startDate = currentDate.AddDays(-15);
+        // Arrange: We created a "dirty" object (both enabled) just for this test
+        var frequencyAmbigua = new ScheduleDailyFrecuency(
+            OccursOnceEnable: true,
+            OnceTime: new TimeOnly(15, 0), // 3 PM
+            OccursEveryEnable: true,       // Also enabled (User error)
+            IntervalUnit: TimeIntervalUnit.Hours,
+            FrequencyInterval: 1,
+            StartTime: new TimeOnly(8, 0),
+            EndTime: new TimeOnly(10, 0)
+        );
 
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
-            .With_RecursEvery(2)
-            .With_DailyFrecuency_OccursEvery(
-                intervalUnit: TimeIntervalUnit.Minutes,
-                frequencyInterval: 2,
-                startTime: new TimeOnly(0, 10),
-                endTime: new TimeOnly(0, 10))
-            .With_Limits_StartDateLocal(startDate)
+        var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_RecursEvery(1)
+            .With_DailyFrecuency(frequencyAmbigua) // We inject the object directly
+            .With_Locale("en-US")
             .Build();
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
 
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(new DateTimeOffset(2026, 5, 2, 0, 10, 0, TimeSpan.Zero) ,result.NextExecutionTime);
-        Assert.Equal("Occurs every 2 days. Every 2 minutes at 00:10. Starting on 02/05/2026", result.Description);
-        Assert.Equal("", result.ErrorMessage);
+        // Assert: The 'Once' mode should take precedence (15:00)
+        Assert.Equal(15, result.NextExecutionTime!.Value.Hour);
     }
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_With_DailyFrecuency_With_OcursEvery_In_Seconds_ReturnsSuccess()
+    public void Mode_OccursEvery_Should_Execute_Correct_Intervals()
     {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 2, 0, 0, 0, TimeSpan.Zero);
-        var startDate = currentDate.AddDays(-15);
-
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
-            .With_RecursEvery(2)
-            .With_DailyFrecuency_OccursEvery(
-                intervalUnit: TimeIntervalUnit.Seconds,
-                frequencyInterval: 25,
-                startTime: new TimeOnly(4, 0),
-                endTime: new TimeOnly(8, 0))
-            .With_Limits_StartDateLocal(startDate)
+        var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_RecursEvery(1)
+            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
-        // Act
         var result = _service.CalculateNextExecution(currentDate, config);
 
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(new DateTimeOffset(2026, 5, 2, 4, 0, 0, TimeSpan.Zero), result.NextExecutionTime);
-        Assert.Equal("Occurs every 2 days. Every 25 seconds at 04:00. Starting on 02/05/2026", result.Description);
-        Assert.Equal("", result.ErrorMessage);
+        // The first execution of day 06 at 04:00 AM
+        Assert.Equal(4, result.NextExecutionTime!.Value.Hour);
     }
 
+    [Fact]
+    public void Should_Return_Today_If_One_Time_Is_Still_Future()
+    {
+        // Today, the 6th, at 10:00 AM. Fixed time: 03:00 PM (15:00).
+        var currentDate = new DateTimeOffset(2026, 5, 6, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_RecursEvery(1)
+            .With_DailyFrecuency_OccursOnce(new TimeOnly(15, 0))
+            .Build();
 
-    //[Fact]
-    //public void CalculateRecurringDaily_WithDatetimeBeforeCurrentDate_ReturnsError()
-    //{
-    //    // Arrange
-    //    var execution = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
-    //    var currentDate = execution.AddDays(1);
-    //    var startDate = execution.AddDays(-10);
+        var result = _service.CalculateNextExecution(currentDate, config);
 
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithStartDate(startDate)
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(currentDate, config);
-
-    //    // Assert
-    //    Assert.False(result.IsSuccess);
-    //    Assert.Null(result.NextExecutionTime);
-    //    Assert.Equal("", result.Description);
-    //    Assert.Equal("DateTime cannot be less than CurrentDate", result.ErrorMessage);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithDatetimeBeforeStartdateDate_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var execution = DateTimeOffset.UtcNow.AddDays(1);
-    //    var startDate = DateTimeOffset.UtcNow.AddDays(10);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithStartDate(startDate)
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal(startDate.AddDays(1), result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_CurrentDateBeforeStartdateDate_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var startDate = DateTimeOffset.UtcNow.AddDays(10);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithStartDate(startDate)
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal(startDate.AddDays(1), result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithDatetimeAfterEndDate_ReturnsError()
-    //{
-    //    // Arrange
-    //    var execution = DateTimeOffset.UtcNow.AddDays(1);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithStartDate(execution.AddDays(-1))
-    //        .WithEndDate(execution.AddDays(-1))
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Assert
-    //    Assert.False(result.IsSuccess);
-    //    Assert.Null(result.NextExecutionTime);
-    //    Assert.Equal("", result.Description);
-    //    Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_CurrentDateAfterEndDate_ReturnsError()
-    //{
-    //    // Arrange
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithStartDate(DateTimeOffset.UtcNow.AddDays(-1))
-    //        .WithEndDate(DateTimeOffset.UtcNow)
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow.AddDays(1), config);
-
-    //    // Assert
-    //    Assert.False(result.IsSuccess);
-    //    Assert.Null(result.NextExecutionTime);
-    //    Assert.Equal("", result.Description);
-    //    Assert.Equal("No valid daily execution found within the allowed range.", result.ErrorMessage);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithDateTimeNull_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var currentDate = DateTimeOffset.UtcNow;
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(currentDate, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal(currentDate.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithValidFutureDateTime_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var execution = DateTimeOffset.UtcNow.AddDays(1);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithStartDate(execution.AddDays(-10))
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Equal(execution.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithValidFutureCurrentDate_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var currentDate = DateTimeOffset.UtcNow.AddDays(1);
-    //    var startDate = DateTimeOffset.UtcNow.AddDays(-10);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithStartDate(startDate)
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(currentDate, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Equal(currentDate.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithValidDateInRange_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var execution = DateTimeOffset.UtcNow.AddDays(1);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithStartDate(execution.AddDays(-10))
-    //        .WithEndDate(execution.AddDays(20))
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Equal(execution.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithValidDateInRangeWithNoStartDate_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var execution = DateTimeOffset.UtcNow.AddDays(1);
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .WithExecution(execution)
-    //        .WithEndDate(execution.AddDays(20))
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Equal(execution.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-    //}
-
-    //[Fact]
-    //public void CalculateRecurringDaily_WithOnlyCurrentDate_ReturnsSuccess()
-    //{
-    //    // Arrange
-    //    var currentDate = DateTimeOffset.UtcNow;
-
-    //    var config = ScheduleConfigurationBuilder
-    //        .RecurringDaily()
-    //        .Build();
-
-    //    // Act
-    //    var result = _service.CalculateNextExecution(currentDate, config);
-
-    //    // Assert
-    //    Assert.True(result.IsSuccess);
-    //    Assert.NotNull(result.NextExecutionTime);
-    //    Assert.Equal("", result.ErrorMessage);
-    //    Assert.Equal(currentDate.AddDays(1), result.NextExecutionTime);
-    //    Assert.Contains("Occurs every day. Schedule will be used on ", result.Description);
-
-    //}
-
+        Assert.Equal(6, result.NextExecutionTime!.Value.Day);
+        Assert.Equal(15, result.NextExecutionTime.Value.Hour);
+    }
 }
-

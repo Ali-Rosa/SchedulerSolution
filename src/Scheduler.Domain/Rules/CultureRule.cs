@@ -4,7 +4,7 @@ namespace Scheduler.Domain.Rules;
 
 public static class CultureRule
 {
-    // Cargamos todas las culturas válidas del sistema una sola vez (Caché estática)
+    // We load all valid system cultures only once (Static cache)
     private static readonly HashSet<string> ValidCultureNames =
         CultureInfo.GetCultures(CultureTypes.AllCultures)
                    .Select(c => c.Name)
@@ -18,17 +18,17 @@ public static class CultureRule
 
     public static DayOfWeek GetFirstDayOfWeek(ScheduleConfiguration config)
     {
-        // Si el usuario forzó un día, usamos ese.
+        // If the user forced a day, we used that one.
         if (config.FirstDayOfWeek.HasValue) return config.FirstDayOfWeek.Value;
 
-        // Si no, lo extraemos de la cultura (ya validada previamente)
+        // Otherwise, we extract it from the culture (already validated beforehand).
         var culture = new CultureInfo(config.Locale);
         return culture.DateTimeFormat.FirstDayOfWeek;
     }
 
     public static CultureInfo GetCultureInfo(string locale)
     {
-        // Método seguro porque se llama DESPUÉS de validar
+        // Safe method because it is called AFTER validation
         return new CultureInfo(locale);
     }
 }

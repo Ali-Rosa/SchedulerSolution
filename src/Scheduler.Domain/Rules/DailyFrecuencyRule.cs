@@ -1,27 +1,42 @@
 ﻿using Scheduler.Domain.Models;
 
-namespace Scheduler.Domain.Rules;
-
 public static class DailyFrecuencyRule
 {
     public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrecuency schedule, TimeZoneInfo timeZone)
     {
-        var start = day.ToDateTime(schedule.StartTime);
-        var end = day.ToDateTime(schedule.EndTime);
-
-        var current = start;
-
-        while (current <= end)
+        // Single execution in the day (OccursOnceEnable)
+        if (schedule.OccursOnceEnable)
         {
-            yield return TimeZoneInfo.ConvertTimeToUtc(current, timeZone);
-
-            current = schedule.IntervalUnit switch
+            var dt = day.ToDateTime(schedule.OnceTime);
+            if (!timeZone.IsInvalidTime(dt))
             {
-                TimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
-                TimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
-                TimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                yield return TimeZoneInfo.ConvertTimeToUtc(dt, timeZone);
+            }
+            yield break; // End here if it's a single execution
+        }
+
+        // Recurrent intra-day execution (OccursEveryEnable)
+        if (schedule.OccursEveryEnable)
+        {
+            var start = day.ToDateTime(schedule.StartTime);
+            var end = day.ToDateTime(schedule.EndTime);
+            var current = start;
+
+            while (current <= end)
+            {
+                if (!timeZone.IsInvalidTime(current))
+                {
+                    yield return TimeZoneInfo.ConvertTimeToUtc(current, timeZone);
+                }
+
+                current = schedule.IntervalUnit switch
+                {
+                    TimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
+                    TimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
+                    TimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
         }
     }
 }
