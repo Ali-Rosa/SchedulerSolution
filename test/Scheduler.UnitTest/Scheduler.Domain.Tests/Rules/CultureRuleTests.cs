@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using Scheduler.Domain.Rules;
+﻿using Scheduler.Domain.Rules;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
+using Shouldly;
 
 namespace Scheduler.Domain.Tests.Rules;
 
@@ -11,13 +11,13 @@ public class CultureRuleTests
     [InlineData("es-ES")]
     [InlineData("fr-FR")]
     [InlineData("ar-SA")]
-    public void IsValid_Returns_True_For_Standard_Cultures(string locale)
+    public void Standard_Locales_Should_Be_Valid(string locale)
     {
         // Act
         var result = CultureRule.IsValid(locale);
 
         // Assert
-        Assert.True(result, $"The {locale} culture should be valid in any system.");
+        result.ShouldBeTrue($"The {locale} culture should be recognized by the system.");
     }
 
     [Theory]
@@ -26,37 +26,36 @@ public class CultureRuleTests
     [InlineData(null)]
     [InlineData("invented-culture")]
     [InlineData("12345")]
-    public void IsValid_Returns_False_For_Invalid_Cultures(string locale)
+    public void Invalid_Locales_Should_Not_Be_Valid(string? locale)
     {
         // Act
-        var result = CultureRule.IsValid(locale);
+        var result = CultureRule.IsValid(locale!);
 
         // Assert
-        Assert.False(result);
+        result.ShouldBeFalse();
     }
 
     [Fact]
-    public void GetFirstDayOfWeek_Returns_Culture_Default_When_Not_Forced()
+    public void FirstDayOfWeek_Should_Match_Culture_Defaults_When_Not_Overridden()
     {
         // Arrange
-        var configUS = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
-        var configES = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("es-ES").Build();
+        var configUS = ScheduleConfigurationBuilder.RecurringDaily("en-US").Build();
+        var configES = ScheduleConfigurationBuilder.RecurringDaily("es-ES").Build();
 
         // Act
         var firstDayUS = CultureRule.GetFirstDayOfWeek(configUS);
         var firstDayES = CultureRule.GetFirstDayOfWeek(configES);
 
         // Assert
-        Assert.Equal(DayOfWeek.Sunday, firstDayUS); // In US, the week starts on Sunday
-        Assert.Equal(DayOfWeek.Monday, firstDayES); // In ES, the week starts on Monday
+        firstDayUS.ShouldBe(DayOfWeek.Sunday); // US Standard
+        firstDayES.ShouldBe(DayOfWeek.Monday); // Spanish/ISO Standard
     }
 
     [Fact]
-    public void GetFirstDayOfWeek_Returns_Forced_Value_Ignoring_Culture()
+    public void FirstDayOfWeek_Should_Use_Overridden_Value_Regardless_Of_Culture()
     {
-        // Arrange: Culture is US (Sunday), but we force Monday
-        var config = ScheduleConfigurationBuilder.RecurringDaily()
-            .With_Locale("en-US")
+        // Arrange: Culture is US (Sunday), but we manually forced Monday
+        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
             .With_FirstDayOfWeek(DayOfWeek.Monday)
             .Build();
 
@@ -64,17 +63,20 @@ public class CultureRuleTests
         var result = CultureRule.GetFirstDayOfWeek(config);
 
         // Assert
-        Assert.Equal(DayOfWeek.Monday, result);
+        result.ShouldBe(DayOfWeek.Monday);
     }
 
     [Fact]
-    public void GetCultureInfo_Returns_Valid_Instance()
+    public void GetCultureInfo_Should_Return_Correct_Instance_For_Valid_Locale()
     {
+        // Arrange
+        var locale = "es-MX";
+
         // Act
-        var culture = CultureRule.GetCultureInfo("es-MX");
+        var culture = CultureRule.GetCultureInfo(locale);
 
         // Assert
-        Assert.NotNull(culture);
-        Assert.Equal("es-MX", culture.Name);
+        culture.ShouldNotBeNull();
+        culture.Name.ShouldBe(locale);
     }
 }

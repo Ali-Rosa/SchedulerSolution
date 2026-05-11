@@ -1,4 +1,5 @@
-using Scheduler.Domain.Models;
+
+namespace Scheduler.Domain.Models;
 
 public record ScheduleConfiguration(
     bool Enabled,

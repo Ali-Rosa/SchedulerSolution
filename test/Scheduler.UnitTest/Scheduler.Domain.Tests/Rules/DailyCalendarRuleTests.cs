@@ -1,11 +1,12 @@
 ﻿using Scheduler.Domain.Rules;
+using Shouldly;
 
 namespace Scheduler.Domain.Tests.Rules;
 
 public class DailyCalendarRuleTests
 {
     [Fact]
-    public void Same_Day_Is_Always_Valid_If_Not_Past()
+    public void Start_Day_Should_Always_Be_Valid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -16,11 +17,11 @@ public class DailyCalendarRuleTests
         var result = DailyCalendarRule.IsValidDay(today, start, every);
 
         // Assert
-        Assert.True(result, "The same start date must always be valid (diff = 0)");
+        result.ShouldBeTrue("The same start date must always be valid (diff = 0).");
     }
 
     [Fact]
-    public void Valid_When_Difference_Is_Multiple_Of_EveryDays()
+    public void Day_That_Matches_Recursion_Pattern_Should_Be_Valid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -31,11 +32,11 @@ public class DailyCalendarRuleTests
         var result = DailyCalendarRule.IsValidDay(target, start, every);
 
         // Assert
-        Assert.True(result);
+        result.ShouldBeTrue();
     }
 
     [Fact]
-    public void Invalid_When_Difference_Is_Not_Multiple_Of_EveryDays()
+    public void Day_That_Does_Not_Match_Recursion_Pattern_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -46,11 +47,11 @@ public class DailyCalendarRuleTests
         var result = DailyCalendarRule.IsValidDay(target, start, every);
 
         // Assert
-        Assert.False(result);
+        result.ShouldBeFalse();
     }
 
     [Fact]
-    public void Invalid_For_Past_Dates()
+    public void Past_Dates_Relative_To_Start_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 10);
@@ -61,45 +62,48 @@ public class DailyCalendarRuleTests
         var result = DailyCalendarRule.IsValidDay(past, start, every);
 
         // Assert
-        Assert.False(result, "Should not allow dates before the start date");
+        result.ShouldBeFalse("The rule should never validate dates chronologically prior to the start date.");
     }
 
     [Fact]
-    public void EveryDays_Zero_Only_Valid_On_StartDay()
+    public void Zero_RecursEvery_Should_Only_Allow_The_Start_Day()
     {
-        // Special scenario: If every is 0, only the start day is valid
+        // Arrange
         var start = new DateOnly(2026, 5, 1);
-        var target = new DateOnly(2026, 5, 2);
+        var nextDay = new DateOnly(2026, 5, 2);
 
-        Assert.True(DailyCalendarRule.IsValidDay(start, start, 0));
-        Assert.False(DailyCalendarRule.IsValidDay(target, start, 0));
+        // Act & Assert
+        DailyCalendarRule.IsValidDay(start, start, 0).ShouldBeTrue();
+        DailyCalendarRule.IsValidDay(nextDay, start, 0).ShouldBeFalse();
     }
 
     [Fact]
-    public void Works_Across_Month_Boundaries_And_Leap_Years()
+    public void Leap_Year_Transitions_Should_Be_Calculated_Correctly()
     {
-        // Test the transition from February to March in a leap year
-        var start = new DateOnly(2024, 2, 28); // 2024 is a leap year
-        var target = new DateOnly(2024, 3, 1); // 2 days later (28th and 29th of Feb)
+        // Arrange: 2024 is a leap year (Feb 29 exists)
+        var start = new DateOnly(2024, 2, 28);
+        var target = new DateOnly(2024, 3, 1); // 2 days later
         int every = 2;
 
+        // Act
         var result = DailyCalendarRule.IsValidDay(target, start, every);
 
-        Assert.True(result, "Should correctly calculate days including February 29th");
+        // Assert
+        result.ShouldBeTrue("The calculation must account for February 29th in leap years.");
     }
 
     [Fact]
-    public void Large_Gap_Test()
+    public void Long_Distance_Dates_Should_Maintain_Pattern_Integrity()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1);
-        var target = start.AddDays(300); // 300 days later
+        var target = start.AddDays(300); // exactly 300 days later
         int every = 100;
 
         // Act
         var result = DailyCalendarRule.IsValidDay(target, start, every);
 
         // Assert
-        Assert.True(result, "300 is a multiple of 100");
+        result.ShouldBeTrue();
     }
 }

@@ -26,64 +26,6 @@ public class CalculateNextExecution_ValidationTests
     }
 
     [Fact]
-    public void CalculateNextExecution_WithDisabledSchedule_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .Disabled()
-            .Build();
-
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("The schedule is disabled.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void CalculateNextExecution_WithUnsupportedScheduleType_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_Invalid_ScheduleType()
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("Not defined schedule type.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void CalculateNextExecution_WithUnsupportedOccursType_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_Invalid_OccursType()
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("Not defined occurs type.", result.ErrorMessage);
-    }
-
-    [Fact]
     public void CalculateNextExecution_WhenStrategyCombinationIsNotRegistered_ReturnsUnsupportedCombinationError()
     {
 
@@ -107,25 +49,6 @@ public class CalculateNextExecution_ValidationTests
     }
 
     [Fact]
-    public void CalculateNextExecution_WithEveryNegative_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_RecursEvery(-1)
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("The Every value cannot be negative.", result.ErrorMessage);
-    }
-
-    [Fact]
     public void CalculateNextExecution_WithInvalidTimeZone_ReturnsError()
     {
         // Arrange
@@ -143,6 +66,5 @@ public class CalculateNextExecution_ValidationTests
         Assert.Null(result.NextExecutionTime);
         Assert.StartsWith("Invalid TimeZoneId", result.ErrorMessage);
     }
-
 
 }

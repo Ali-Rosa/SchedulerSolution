@@ -17,6 +17,7 @@ public static class ScheduleEngine
         var currentLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
         var seriesStartLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
         var seriesStartDay = DateOnly.FromDateTime(seriesStartLocal.DateTime);
+        var anchorTime = seriesStartLocal.TimeOfDay;
 
         var limitStartLocal = config.LimitsStartDateLocal.HasValue ? TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal.Value, timeZone) : seriesStartLocal;
 
@@ -28,7 +29,7 @@ public static class ScheduleEngine
 
             if (isDayValidLogic(currentDay, seriesStartDay))
             {
-                var executions = GetExecutionsForDay(currentDay, currentDateUtc, config, timeZone);
+                var executions = GetExecutionsForDay(currentDay, currentDateUtc, config, timeZone, anchorTime);
 
                 foreach (var execution in executions)
                 {
@@ -50,9 +51,11 @@ public static class ScheduleEngine
         return new SchedulerResponse(results, description);
     }
 
-    private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
+    private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
-        var allDayExecutions = (config.DailyFrecuency != null) ? DailyFrecuencyRule.GetExecutionsForDay(day, config.DailyFrecuency, timeZone) : GenerateSingleExecution(day, config, timeZone);
+        var allDayExecutions = (config.DailyFrecuency != null) 
+            ? DailyFrecuencyRule.GetExecutionsForDay(day, config.DailyFrecuency, timeZone) 
+            : GenerateSingleExecution(day, config, timeZone, anchorTime);
 
         return allDayExecutions
             .Where(e => e > currentDateUtc)
@@ -61,18 +64,12 @@ public static class ScheduleEngine
             .OrderBy(e => e);
     }
 
-    private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, ScheduleConfiguration config, TimeZoneInfo timeZone)
+    private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, ScheduleConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
         TimeSpan time;
 
-        if (config.Type == ScheduleType.Recurring)
-        {
-            time = TimeSpan.Zero; // 00:00:00
-        }
-        else
-        {
-            time = config.ExecutionDateTimeLocal?.TimeOfDay ?? TimeSpan.Zero;
-        }
+        time = anchorTime; // Use the anchor time for recurring schedules
+
         var localDateTime = day.ToDateTime(TimeOnly.FromTimeSpan(time));
         return new[] { new DateTimeOffset(localDateTime, timeZone.GetUtcOffset(localDateTime)) };
     }

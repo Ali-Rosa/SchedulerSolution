@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Scheduler.Domain.Models;
+using System.Globalization;
 
 namespace Scheduler.Domain.Rules;
 

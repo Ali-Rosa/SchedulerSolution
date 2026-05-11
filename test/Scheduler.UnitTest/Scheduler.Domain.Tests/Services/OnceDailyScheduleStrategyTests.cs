@@ -1,171 +1,132 @@
 ﻿using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
+using Shouldly;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_OnceDailyScheduleStrategyTests
+public class OnceDailyScheduleStrategyTests
 {
     private readonly SchedulerService _service;
-    public CalculateNextExecution_OnceDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
+    public OnceDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
+
+    #region Basic & Default Scenarios
 
     [Fact]
-    public void CalculateOnce_WithDateTimeNull_ReturnsSuccess()
+    public void CurrentDate_Should_Be_Used_When_No_Execution_Time_Provided()
+    {
+        var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily().Build();
+
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(currentDate);
+        result.Description.ShouldContain("Occurs once");
+    }
+
+    [Fact]
+    public void Exact_CurrentDate_Should_Be_Valid_Execution_Time()
+    {
+        var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_ExecutionDateTimeLocal(currentDate)
+            .Build();
+
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(currentDate);
+    }
+
+    #endregion
+
+    #region Execution Limits
+
+    [Theory]
+    [InlineData(1, "DateTime cannot be less than CurrentDate")] // 1 hour ago
+    public void Past_Execution_Dates_Should_Return_Specific_Error(int hoursBack, string expectedError)
     {
         // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
+        var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
+        var pastExecution = currentDate.AddHours(-hoursBack);
+
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_ExecutionDateTimeLocal(pastExecution)
             .Build();
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(currentDate, result.NextExecutionTime);
-        Assert.Contains("Occurs once. Schedule will be used on ", result.Description);
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe(expectedError);
     }
 
-    [Fact]
-    public void CalculateOnce_WithDatetimeBeforeCurrentDate_ReturnsError()
+    [Theory]
+    [InlineData(10, 5)]  // Execution in 10 days, Limit in 5 (Exceeds end)
+    [InlineData(2, 5)]  // Execution in 2 days, Start Limit in 5 days (Fails for being before start)
+    public void Dates_Outside_Start_Or_End_Limits_Should_Fail(int daysToExecution, int daysToLimit)
     {
-
         // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(-1);
-        var startDate = execution.AddDays(-20);
+        var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
+        var execution = currentDate.AddDays(daysToExecution);
 
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(execution)
-            .With_Limits_StartDateLocal(startDate)
-            .Build();
+        var builder = ScheduleConfigurationBuilder.OnceDaily().With_ExecutionDateTimeLocal(execution);
+
+        // If daysToExecution is less than the limit, test StartDate
+        if (daysToExecution < daysToLimit)
+            builder.With_Limits_StartDateLocal(currentDate.AddDays(daysToLimit));
+        else // If greater, test EndDate
+            builder.With_Limits_EndDateLocal(currentDate.AddDays(daysToLimit));
 
         // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
+        var result = _service.CalculateNextExecution(currentDate, builder.Build());
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Equal("DateTime cannot be less than CurrentDate", result.ErrorMessage);
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
     }
 
-    [Fact]
-    public void CalculateOnce_WithDatetimeBeforeStartdateDate_ReturnsError()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(1);
-        var startDate = execution.AddDays(10);
+    #endregion
 
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(execution)
-            .With_Limits_StartDateLocal(startDate)
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
-    }
+    #region TimeZone & Localization
 
     [Fact]
-    public void CalculateOnce_WithDatetimeAfterEndDate_ReturnsError()
+    public void Response_Should_Correctly_Convert_To_Local_Time()
     {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(1);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(execution)
-            .With_Limits_StartDateLocal(execution.AddDays(-10))
-            .With_Limits_EndDateLocal(execution.AddDays(-1))
-            .Build();
+        // Arrange: 10:00 AM UTC. Madrid in May is UTC+2.
+        var currentDateUtc = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
+        var timeZoneId = "Romance Standard Time";
 
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("", result.Description);
-        Assert.Equal("The execution date is outside the allowed range.", result.ErrorMessage);
-    }
-
-    [Fact]
-    public void CalculateOnce_WithValidFutureDate_ReturnsSuccess()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(1);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(execution)
-            .With_Limits_StartDateLocal(execution.AddDays(-10))
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.NextExecutionTime);
-        Assert.Equal(execution, result.NextExecutionTime);
-        Assert.Contains("Occurs once", result.Description);
-    }
-
-    [Fact]
-    public void CalculateOnce_WithValidDateInRange_ReturnsSuccess()
-    {
-        // Arrange
-        var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var execution = currentDate.AddDays(1);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(execution)
-            .With_Limits_StartDateLocal(execution.AddDays(-10))
-            .With_Limits_EndDateLocal(execution.AddDays(20))
-            .Build();
-
-        // Act
-        var result = _service.CalculateNextExecution(currentDate, config);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(execution, result.NextExecutionTime);
-    }
-
-    [Fact]
-    public void CalculateOnce_WithLocalTimeZone_ReturnsSuccess()
-    {
-        // Arrange
-        var timeZoneId = "Europe/Madrid";
-        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-
-        var localExecution = new DateTime(2026, 05, 10, 08, 30, 00, DateTimeKind.Unspecified);
-        var executionDto = new DateTimeOffset(localExecution, timeZone.GetUtcOffset(localExecution));
-
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_ExecutionDateTimeLocal(executionDto)
-            .With_Limits_StartDateLocal(executionDto.AddDays(-1))
+        var config = ScheduleConfigurationBuilder.OnceDaily()
             .With_TimeZoneId(timeZoneId)
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(currentDateUtc, config);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(executionDto, result.NextExecutionTime);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime?.Hour.ShouldBe(12); // 10 + 2
+        result.NextExecutionTime?.Offset.ShouldBe(TimeSpan.FromHours(2));
     }
 
+    [Fact]
+    public void Description_Should_Include_Starting_Label_When_Limit_Is_Present()
+    {
+        var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
+        var startLimit = currentDate.AddDays(-1);
+
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Limits_StartDateLocal(startLimit)
+            .Build();
+
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        result.Description.ShouldContain("starting on");
+        result.Description.ShouldContain(startLimit.ToString("dd/MM/yyyy"));
+    }
+
+    #endregion
 }

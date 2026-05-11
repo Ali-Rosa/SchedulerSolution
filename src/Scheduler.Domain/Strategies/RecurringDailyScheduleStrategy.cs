@@ -1,6 +1,7 @@
 ﻿using Scheduler.Domain.Models;
 using Scheduler.Domain.Rules;
-using Scheduler.Domain.Strategies;
+
+namespace Scheduler.Domain.Strategies;
 
 public sealed class RecurringDailyScheduleStrategy : IScheduleStrategy
 {

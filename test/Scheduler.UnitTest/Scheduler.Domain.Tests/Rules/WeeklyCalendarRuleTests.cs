@@ -1,4 +1,5 @@
 ﻿using Scheduler.Domain.Rules;
+using Shouldly;
 
 namespace Scheduler.Domain.Tests.Rules;
 
@@ -7,7 +8,7 @@ public class WeeklyCalendarRuleTests
     private readonly DayOfWeek[] _mondayThursdayFriday = [DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Friday];
 
     [Fact]
-    public void Days_In_Same_Week_Of_Start_Are_Valid_With_Every_2_Weeks()
+    public void Days_In_Initial_Week_Should_Be_Valid_When_Pattern_Matches()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1); // Wednesday
@@ -19,11 +20,11 @@ public class WeeklyCalendarRuleTests
         var result = WeeklyCalendarRule.IsValidDay(thursday, start, _mondayThursdayFriday, everyWeeks, firstDay);
 
         // Assert
-        Assert.True(result, "Thursday should be valid because it is in week 0 relative to Wednesday");
+        result.ShouldBeTrue("Days within the same week as the start date (Week 0) should be valid.");
     }
 
     [Fact]
-    public void Skips_Week_Correctly_When_Every_2_Weeks()
+    public void Pattern_Should_Skip_Weeks_According_To_Recursion_Value()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1); // Wednesday (Week 0)
@@ -35,74 +36,73 @@ public class WeeklyCalendarRuleTests
         var mondayWeek2 = new DateOnly(2020, 1, 13);  // Two Mondays later (Week 2)
 
         // Act & Assert
-        Assert.False(WeeklyCalendarRule.IsValidDay(mondayWeek1, start, days, everyWeeks, firstDay), "Should be false: week 1 is not a multiple of 2");
-        Assert.True(WeeklyCalendarRule.IsValidDay(mondayWeek2, start, days, everyWeeks, firstDay), "Should be true: week 2 is a multiple of 2");
+        WeeklyCalendarRule.IsValidDay(mondayWeek1, start, days, everyWeeks, firstDay).ShouldBeFalse("Week 1 is not a multiple of 2.");
+        WeeklyCalendarRule.IsValidDay(mondayWeek2, start, days, everyWeeks, firstDay).ShouldBeTrue("Week 2 is a multiple of 2.");
     }
 
     [Fact]
-    public void FirstDayOfWeek_Changes_Week_Grouping_Crucially()
+    public void FirstDayOfWeek_Should_Determine_Week_Grouping_Boundaries()
     {
-        // SCENARIO:
         // Start Date: Saturday 02/05/2026
         // Target Date: Sunday 03/05/2026
-        // If the week starts on MONDAY: Saturday and Sunday are in the SAME week (Week 0).
-        // If the week starts on SUNDAY: Sunday is already in the NEXT week (Week 1).
         var start = new DateOnly(2026, 5, 2); // Saturday
         var target = new DateOnly(2026, 5, 3); // Sunday
         var days = new[] { DayOfWeek.Sunday };
         int everyWeeks = 2;
 
-        // Case A: Monday as the first day
-        bool resultMonday = WeeklyCalendarRule.IsValidDay(target, start, days, everyWeeks, DayOfWeek.Monday);
+        // Case A: Monday as the first day (Saturday and Sunday are in the SAME week 0)
+        bool resultMondayStart = WeeklyCalendarRule.IsValidDay(target, start, days, everyWeeks, DayOfWeek.Monday);
 
-        // Case B: Sunday as the first day
-        bool resultSunday = WeeklyCalendarRule.IsValidDay(target, start, days, everyWeeks, DayOfWeek.Sunday);
+        // Case B: Sunday as the first day (Sunday 03 is already in the NEXT week 1)
+        bool resultSundayStart = WeeklyCalendarRule.IsValidDay(target, start, days, everyWeeks, DayOfWeek.Sunday);
 
         // Assert
-        Assert.True(resultMonday, "With Monday as the start, Sunday is Week 0 (Valid)");
-        Assert.False(resultSunday, "With Sunday as the start, Sunday is Week 1 (Invalid for 'Every 2 weeks')");
+        resultMondayStart.ShouldBeTrue("With Monday start, Sunday belongs to Week 0.");
+        resultSundayStart.ShouldBeFalse("With Sunday start, Sunday belongs to Week 1 (which is skipped).");
     }
 
     [Fact]
-    public void Returns_False_If_Day_Is_Not_In_Selected_Days()
+    public void Days_Not_In_Selected_List_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1);
         var tuesday = new DateOnly(2020, 1, 7); // Tuesday
-        var days = new[] { DayOfWeek.Monday }; // Only Monday
+        var selectedDays = new[] { DayOfWeek.Monday }; // Only Monday
 
         // Act
-        var result = WeeklyCalendarRule.IsValidDay(tuesday, start, days, 1, DayOfWeek.Monday);
+        var result = WeeklyCalendarRule.IsValidDay(tuesday, start, selectedDays, 1, DayOfWeek.Monday);
 
         // Assert
-        Assert.False(result, "Should be false because Tuesday is not in the list of selected days");
+        result.ShouldBeFalse("Tuesday was not selected in the schedule configuration.");
     }
 
     [Fact]
-    public void Returns_False_If_Target_Day_Is_Before_Start_Date()
+    public void Dates_Prior_To_Start_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 10);
-        var targetPast = new DateOnly(2020, 1, 3); // One week before
+        var targetPast = new DateOnly(2020, 1, 3);
         var days = new[] { DayOfWeek.Friday };
 
         // Act
         var result = WeeklyCalendarRule.IsValidDay(targetPast, start, days, 1, DayOfWeek.Monday);
 
         // Assert
-        Assert.False(result, "Should not allow dates before the start date");
+        result.ShouldBeFalse("The rule must reject any date chronologically before the series start.");
     }
 
     [Fact]
-    public void Handles_Sunday_As_First_Day_Correctly()
+    public void Sunday_As_Start_Of_Week_Should_Calculate_Pattern_Correctly()
     {
-        // Sunday is 0 in the Enum. Let's verify that the formula (current - first + 7) % 7 does not fail.
+        // Sunday is 0 in the Enum.
         var start = new DateOnly(2026, 5, 10); // Sunday (Week 0)
         var nextSunday = new DateOnly(2026, 5, 24); // Two weeks later (Week 2)
         var days = new[] { DayOfWeek.Sunday };
 
+        // Act
         var result = WeeklyCalendarRule.IsValidDay(nextSunday, start, days, 2, DayOfWeek.Sunday);
 
-        Assert.True(result);
+        // Assert
+        result.ShouldBeTrue("The modulo arithmetic should handle Sunday (0) correctly.");
     }
 }

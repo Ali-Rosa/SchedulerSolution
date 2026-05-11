@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models;
 using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Strategies;
@@ -13,8 +12,10 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
         if (!CultureRule.IsValid(config.Locale))
             return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");
 
-        if (config.Weekly is null || !config.Weekly.DaysOfWeek.Any())
+        if (config.Weekly!.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
+        {
             return new SchedulerResponse("Weekly configuration and at least one day are required.");
+        }
 
         if (config.RecursEvery <= 0)
             return new SchedulerResponse("The Every value must be greater than 0.");

@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Scheduler.Domain.Models;
+using System.Globalization;
 
 namespace Scheduler.Domain.Rules;
 
@@ -18,7 +19,7 @@ public static class CultureRule
 
     public static DayOfWeek GetFirstDayOfWeek(ScheduleConfiguration config)
     {
-        // If the user forced a day, we used that one.
+        // If the user sets a day, it will be used.
         if (config.FirstDayOfWeek.HasValue) return config.FirstDayOfWeek.Value;
 
         // Otherwise, we extract it from the culture (already validated beforehand).

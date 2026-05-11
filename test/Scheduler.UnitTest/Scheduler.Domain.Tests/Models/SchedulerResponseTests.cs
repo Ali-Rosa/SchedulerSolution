@@ -1,0 +1,67 @@
+﻿using Scheduler.Domain.Models;
+using Shouldly;
+
+namespace Scheduler.Domain.Tests.Models;
+
+public class SchedulerResponseTests
+{
+    [Fact]
+    public void Unsorted_Executions_Should_Be_Sorted_Chronologically()
+    {
+        // Arrange
+        var earliestDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero);
+        var laterDate = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
+        var unsortedList = new List<DateTimeOffset> { laterDate, earliestDate };
+
+        // Act
+        var response = new SchedulerResponse(unsortedList, "Sorting test");
+
+        // Assert
+        response.IsSuccess.ShouldBeTrue();
+        response.NextExecutionTime.ShouldBe(earliestDate); 
+        response.NextsExecutionsTimes.First().ShouldBe(earliestDate);
+        response.NextsExecutionsTimes.Count().ShouldBe(2);
+        response.ErrorMessage.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Error_Constructor_Should_Initialize_Failure_State()
+    {
+        // Arrange
+        var expectedMessage = "The builder interprets the single message sent as an error message.";
+
+        // Act
+        var response = new SchedulerResponse(expectedMessage);
+
+        // Assert
+        response.IsSuccess.ShouldBeFalse();
+        response.NextExecutionTime.ShouldBeNull();
+        response.NextsExecutionsTimes.ShouldBeEmpty();
+        response.ErrorMessage.ShouldBe(expectedMessage);
+    }
+
+    [Fact]
+    public void Constructor_Should_Be_NullSafe_When_Given_Null_Executions()
+    {
+        // Act
+        var response = new SchedulerResponse(executions: null!, description: "Null test");
+
+        // Assert
+        response.IsSuccess.ShouldBeTrue();
+        response.NextsExecutionsTimes.ShouldNotBeNull();
+        response.NextsExecutionsTimes.ShouldBeEmpty();
+        response.NextExecutionTime.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Default_State_Should_Be_Safe_And_Null()
+    {
+        // Act
+        SchedulerResponse response = default;
+
+        // Assert
+        response.NextExecutionTime.ShouldBeNull();
+        response.NextsExecutionsTimes.ShouldBeNull();
+    }
+
+}
