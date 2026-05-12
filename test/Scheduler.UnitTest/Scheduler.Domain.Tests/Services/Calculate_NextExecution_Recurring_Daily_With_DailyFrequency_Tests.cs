@@ -6,12 +6,12 @@ using Shouldly;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
+public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
 {
     private readonly SchedulerService _service;
 
-    public CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
-
+    public Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
+    
     #region Precedence & Exclusivity Logic
 
     [Fact]
@@ -29,7 +29,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         );
 
         var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency(frequencyAmbigua)
             .Build();
@@ -40,7 +41,7 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-        result.NextExecutionTime?.Hour.ShouldBe(15);
+        result.NextExecutionTime.Value.Hour.ShouldBe(15);
     }
 
     #endregion Precedence & Exclusivity Logic
@@ -52,7 +53,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange: 10 AM now, execution at 3 PM today.
         var currentDate = new DateTimeOffset(2026, 5, 6, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursOnce(new TimeOnly(15, 0))
             .Build();
@@ -61,8 +63,9 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Day.ShouldBe(6);
-        result.NextExecutionTime?.Hour.ShouldBe(15);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(6);
+        result.NextExecutionTime.Value.Hour.ShouldBe(15);
     }
 
     [Fact]
@@ -70,7 +73,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange: 10 PM now, execution was at 8 AM. Should be tomorrow.
         var currentDate = new DateTimeOffset(2026, 5, 6, 22, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursOnce(new TimeOnly(8, 0))
             .Build();
@@ -79,8 +83,9 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Day.ShouldBe(7);
-        result.NextExecutionTime?.Hour.ShouldBe(8);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(7);
+        result.NextExecutionTime.Value.Hour.ShouldBe(8);
     }
 
     #endregion Mode: Occurs Once
@@ -92,7 +97,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange: 5 AM now. Hours: 4, 6, 8 AM. Next: 6 AM.
         var currentDate = new DateTimeOffset(2026, 5, 6, 5, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
@@ -101,8 +107,9 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Day.ShouldBe(6);
-        result.NextExecutionTime?.Hour.ShouldBe(6);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(6);
+        result.NextExecutionTime.Value.Hour.ShouldBe(6);
     }
 
     [Fact]
@@ -110,7 +117,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange: 10 PM now. Pattern every 3 days. Hours 4-8 AM. Next: Day 09 at 4 AM.
         var currentDate = new DateTimeOffset(2026, 5, 6, 22, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(3)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
@@ -119,8 +127,9 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Day.ShouldBe(9);
-        result.NextExecutionTime?.Hour.ShouldBe(4);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(9);
+        result.NextExecutionTime.Value.Hour.ShouldBe(4);
     }
 
     [Theory]
@@ -130,7 +139,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange: 12:00:00 exact.
         var currentDate = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursEvery(unit, interval, new TimeOnly(12, 0, 0), new TimeOnly(13, 0, 0))
             .Build();
@@ -139,9 +149,10 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Hour.ShouldBe(h);
-        result.NextExecutionTime?.Minute.ShouldBe(m);
-        result.NextExecutionTime?.Second.ShouldBe(s);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Hour.ShouldBe(h);
+        result.NextExecutionTime.Value.Minute.ShouldBe(m);
+        result.NextExecutionTime.Value.Second.ShouldBe(s);
     }
 
     #endregion Mode: Occurs Every (Intervals)
@@ -153,7 +164,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Scenario: If it's exactly 04:00:00, the filter 'e > now' should jump to 06:00.
         var currentDate = new DateTimeOffset(2026, 5, 6, 4, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
@@ -162,7 +174,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        result.NextExecutionTime?.Hour.ShouldBe(6);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Hour.ShouldBe(6);
     }
 
     #endregion Edge Cases & Transitions
@@ -174,7 +187,8 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
@@ -188,4 +202,5 @@ public class CalculateNextExecution_RecurringDaily_With_DailyFrequency_Tests
     }
 
     #endregion Localization & Description Verification
+
 }

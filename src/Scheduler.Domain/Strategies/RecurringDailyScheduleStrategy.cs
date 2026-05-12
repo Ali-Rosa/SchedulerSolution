@@ -9,18 +9,19 @@ public sealed class RecurringDailyScheduleStrategy : IScheduleStrategy
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
     {
-        if (!CultureRule.IsValid(config.Locale))
+        if (!CultureRule.IsValid(config.Locale!))
             return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");
 
         if (config.RecursEvery <= 0) 
             return new SchedulerResponse("The Every value must be greater than 0.");
 
-        var cultureInfo = CultureRule.GetCultureInfo(config.Locale);
+        var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
             currentDateUtc
             , config
-            , timeZone, 1
+            , timeZone
+            , 1
             , (currentDay, startDay) => {return DailyCalendarRule.IsValidDay(currentDay, startDay, config.RecursEvery);}
             , (nextDate) => {
                 var prefix = config.RecursEvery == 1 ? "Occurs every day. " : $"Occurs every {config.RecursEvery} days. ";

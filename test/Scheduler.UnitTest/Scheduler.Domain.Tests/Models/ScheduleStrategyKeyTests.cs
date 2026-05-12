@@ -33,4 +33,5 @@ public class ScheduleStrategyKeyTests
         stringRepresentation.ShouldContain(nameof(ScheduleType.Recurring));
         stringRepresentation.ShouldContain(nameof(OccursType.Daily));
     }
+
 }

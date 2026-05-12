@@ -1,6 +1,6 @@
 ﻿namespace Scheduler.Domain.Models;
 
-public sealed record ScheduleDailyFrecuency(
+public sealed record ScheduleDailyFrecuency (
     bool OccursOnceEnable,
     TimeOnly OnceTime,
     bool OccursEveryEnable,

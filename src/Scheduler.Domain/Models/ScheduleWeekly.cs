@@ -1,6 +1,5 @@
-﻿
-namespace Scheduler.Domain.Models;
+﻿namespace Scheduler.Domain.Models;
 
-public sealed record ScheduleWeekly(
+public sealed record ScheduleWeekly (
     IReadOnlyCollection<DayOfWeek> DaysOfWeek
 );

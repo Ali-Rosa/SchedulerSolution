@@ -11,4 +11,5 @@ public static class DailyCalendarRule
 
         return diff >= 0 && diff % everyDays == 0;
     }
+
 }

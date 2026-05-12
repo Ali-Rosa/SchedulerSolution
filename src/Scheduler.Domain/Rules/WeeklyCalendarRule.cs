@@ -1,5 +1,4 @@
-﻿
-namespace Scheduler.Domain.Rules;
+﻿namespace Scheduler.Domain.Rules;
 
 public static class WeeklyCalendarRule
 {

@@ -1,4 +1,5 @@
 ﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Rules;
 using Shouldly;
 
 namespace Scheduler.Domain.Tests.Rules;
@@ -145,4 +146,5 @@ public class DailyFrecuencyRuleTests
         executions.First().Hour.ShouldBe(0); // 01:30 local = 00:30 UTC
         executions.Last().Hour.ShouldBe(1);  // 03:30 local = 01:30 UTC
     }
+
 }

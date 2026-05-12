@@ -16,6 +16,7 @@ public class ScheduleConfigurationValidatorTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .With_RecursEvery(-1)
             .Build();
 
@@ -75,4 +76,22 @@ public class ScheduleConfigurationValidatorTests
         result.IsSuccess.ShouldBeFalse();
         result.ErrorMessage.ShouldBe("Not defined occurs type.");
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Should_Fail_When_Locale_Is_Null_Or_Empty(string? invalidLocale)
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringDaily().Build() with { Locale = invalidLocale };
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The Locale is required.");
+    }
+
 }

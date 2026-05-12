@@ -9,7 +9,7 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
     {
-        if (!CultureRule.IsValid(config.Locale))
+        if (!CultureRule.IsValid(config.Locale!))
             return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");
 
         if (config.Weekly!.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
@@ -21,10 +21,13 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
             return new SchedulerResponse("The Every value must be greater than 0.");
 
         var firstDayOfWeek = CultureRule.GetFirstDayOfWeek(config);
-        var cultureInfo = CultureRule.GetCultureInfo(config.Locale);
+        var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc, config, timeZone, 1
+            currentDateUtc
+            , config
+            , timeZone
+            , 1
             , (currentDay, startDay) => {return WeeklyCalendarRule.IsValidDay( currentDay, startDay, config.Weekly.DaysOfWeek, config.RecursEvery, firstDayOfWeek);}
             , (nextDate) => {
                 var days = string.Join(", ", config.Weekly.DaysOfWeek);

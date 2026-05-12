@@ -1,5 +1,4 @@
-﻿
-namespace Scheduler.Domain.Models;
+﻿namespace Scheduler.Domain.Models;
 
 public enum TimeIntervalUnit
 {

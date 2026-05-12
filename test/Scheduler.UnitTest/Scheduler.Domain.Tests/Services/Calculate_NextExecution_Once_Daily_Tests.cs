@@ -5,10 +5,10 @@ using Shouldly;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class OnceDailyScheduleStrategyTests
+public class Calculate_NextExecution_Once_Daily_Tests
 {
     private readonly SchedulerService _service;
-    public OnceDailyScheduleStrategyTests() => _service = SchedulerServiceFactory.CreateDefault();
+    public Calculate_NextExecution_Once_Daily_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
     #region Basic & Default Scenarios
 
@@ -16,7 +16,7 @@ public class OnceDailyScheduleStrategyTests
     public void CurrentDate_Should_Be_Used_When_No_Execution_Time_Provided()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily().Build();
+        var config = ScheduleConfigurationBuilder.OnceDaily().With_Locale("en-US").Build();
 
         var result = _service.CalculateNextExecution(currentDate, config);
 
@@ -30,6 +30,7 @@ public class OnceDailyScheduleStrategyTests
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .With_ExecutionDateTimeLocal(currentDate)
             .Build();
 
@@ -52,6 +53,7 @@ public class OnceDailyScheduleStrategyTests
         var pastExecution = currentDate.AddHours(-hoursBack);
 
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .With_ExecutionDateTimeLocal(pastExecution)
             .Build();
 
@@ -72,7 +74,7 @@ public class OnceDailyScheduleStrategyTests
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var execution = currentDate.AddDays(daysToExecution);
 
-        var builder = ScheduleConfigurationBuilder.OnceDaily().With_ExecutionDateTimeLocal(execution);
+        var builder = ScheduleConfigurationBuilder.OnceDaily().With_Locale("en-US").With_ExecutionDateTimeLocal(execution);
 
         // If daysToExecution is less than the limit, test StartDate
         if (daysToExecution < daysToLimit)
@@ -100,6 +102,7 @@ public class OnceDailyScheduleStrategyTests
         var timeZoneId = "Romance Standard Time";
 
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .With_TimeZoneId(timeZoneId)
             .Build();
 
@@ -108,8 +111,8 @@ public class OnceDailyScheduleStrategyTests
 
         // Assert
         result.NextExecutionTime.ShouldNotBeNull();
-        result.NextExecutionTime?.Hour.ShouldBe(12); // 10 + 2
-        result.NextExecutionTime?.Offset.ShouldBe(TimeSpan.FromHours(2));
+        result.NextExecutionTime.Value.Hour.ShouldBe(12); // 10 + 2
+        result.NextExecutionTime.Value.Offset.ShouldBe(TimeSpan.FromHours(2));
     }
 
     [Fact]
@@ -119,6 +122,7 @@ public class OnceDailyScheduleStrategyTests
         var startLimit = currentDate.AddDays(-1);
 
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .With_Limits_StartDateLocal(startLimit)
             .Build();
 
@@ -129,4 +133,5 @@ public class OnceDailyScheduleStrategyTests
     }
 
     #endregion
+
 }

@@ -18,12 +18,14 @@ public static class ScheduleConfigurationValidator
         if (!Enum.IsDefined(config.Occurs))
             return (false, "Not defined occurs type.");
 
+        if (string.IsNullOrWhiteSpace(config.Locale))
+            return (false, "The Locale is required.");
+
         if (config.RecursEvery < 0)
             return (false, "The Every value cannot be negative.");
 
         if (!TryGetTimeZone(config.TimeZoneId, out var timeZone))
             return (false, $"Invalid TimeZoneId: {config.TimeZoneId}");
-
 
         return (true, string.Empty);
     }

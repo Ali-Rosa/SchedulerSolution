@@ -1,5 +1,7 @@
 ﻿using Scheduler.Domain.Models;
 
+namespace Scheduler.Domain.Rules;
+
 public static class DailyFrecuencyRule
 {
     public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrecuency schedule, TimeZoneInfo timeZone)

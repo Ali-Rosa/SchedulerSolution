@@ -19,14 +19,14 @@ public sealed class ScheduleConfigurationBuilder
 
     #region Entry Points
 
-    public static ScheduleConfigurationBuilder OnceDaily(string locale = "en-US")
-        => new() { _type = ScheduleType.Once, _recursEvery = 0, _occurs = OccursType.Daily, _locale = locale };
+    public static ScheduleConfigurationBuilder OnceDaily()
+        => new() { _type = ScheduleType.Once, _recursEvery = 0, _occurs = OccursType.Daily };
 
-    public static ScheduleConfigurationBuilder RecurringDaily(string locale = "en-US")
-        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Daily, _locale = locale };
+    public static ScheduleConfigurationBuilder RecurringDaily()
+        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Daily };
 
-    public static ScheduleConfigurationBuilder RecurringWeekly(string locale = "en-US")
-        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Weekly, _locale = locale };
+    public static ScheduleConfigurationBuilder RecurringWeekly()
+        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Weekly };
 
     #endregion Entry Points
 
@@ -94,8 +94,6 @@ public sealed class ScheduleConfigurationBuilder
 
     public ScheduleConfiguration Build()
     {
-        if (string.IsNullOrEmpty(_locale)) throw new InvalidOperationException("Locale must be specified.");
-
         return new ScheduleConfiguration(
             _enabled,
             _type,
@@ -111,4 +109,5 @@ public sealed class ScheduleConfigurationBuilder
             _weekly
         );
     }
+
 }

@@ -6,11 +6,11 @@ using Shouldly;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
+public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
 {
     private readonly SchedulerService _service;
 
-    public CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
+    public Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
     #region Sequence Progression
 
@@ -24,7 +24,8 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
         // Arrange
         var currentDate = new DateTimeOffset(2020, 1, 1, currentHour, 0, 0, TimeSpan.Zero);
 
-        var config = ScheduleConfigurationBuilder.RecurringWeekly("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
@@ -35,8 +36,9 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTime?.Day.ShouldBe(expectedDay);
-        result.NextExecutionTime?.Hour.ShouldBe(expectedHour);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(expectedDay);
+        result.NextExecutionTime.Value.Hour.ShouldBe(expectedHour);
     }
 
     #endregion Sequence Progression
@@ -49,7 +51,8 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
         // Friday, January 3, 2020 at 10 PM. Pattern: Every 2 weeks, Monday/Friday.
         var currentDate = new DateTimeOffset(2020, 1, 3, 22, 0, 0, TimeSpan.Zero);
 
-        var config = ScheduleConfigurationBuilder.RecurringWeekly("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
             .With_RecursEvery(2)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Friday)
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
@@ -59,8 +62,9 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Week 0 ends. Week 1 is skipped. Week 2 starts on Monday 13 at 4 AM.
-        result.NextExecutionTime?.Day.ShouldBe(13);
-        result.NextExecutionTime?.Hour.ShouldBe(4);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(13);
+        result.NextExecutionTime.Value.Hour.ShouldBe(4);
     }
 
     #endregion Complex Week Jumping
@@ -77,15 +81,17 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
         );
 
         var currentDate = new DateTimeOffset(2020, 1, 1, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringWeekly("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday)
             .With_DailyFrecuency(frequencyAmbigua)
             .Build();
 
         var result = _service.CalculateNextExecution(currentDate, config);
 
-        result.NextExecutionTime?.Hour.ShouldBe(15);
-        result.NextExecutionTime?.Day.ShouldBe(1);
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Hour.ShouldBe(15);
+        result.NextExecutionTime.Value.Day.ShouldBe(1);
     }
 
     #endregion Mode Precedence
@@ -96,7 +102,8 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
     public void Should_Respect_EndDate_Limit()
     {
         var currentDate = new DateTimeOffset(2020, 1, 1, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringWeekly("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Monday)
             .With_Limits_EndDateLocal(currentDate.AddDays(4))
             .Build();
@@ -111,7 +118,7 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
     public void Should_Handle_Null_DaysOfWeek_Safely()
     {
         var frequencyNula = new ScheduleWeekly(DaysOfWeek: null!);
-        var config = ScheduleConfigurationBuilder.RecurringWeekly("en-US").Build();
+        var config = ScheduleConfigurationBuilder.RecurringWeekly().With_Locale("en-US").Build();
         var configConError = config with { Weekly = frequencyNula };
 
         var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configConError);
@@ -121,4 +128,5 @@ public class CalculateNextExecution_RecurringWeekly_With_DailyFrequency_Tests
     }
 
     #endregion Limits & Safety
+
 }

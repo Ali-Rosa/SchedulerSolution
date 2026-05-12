@@ -15,7 +15,7 @@ public class DescriptionRuleTests
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero); // 10:00 UTC
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US").Build();
+        var config = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
         var prefix = "Occurs every day. ";
         var culture = new CultureInfo("en-US");
 
@@ -35,7 +35,7 @@ public class DescriptionRuleTests
         // May 12, 2026 -> On this date CST uses Daylight Saving Time (UTC-5)
         // 10:00 AM UTC - 5h = 05:00 AM
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US").Build();
+        var config = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
         var culture = new CultureInfo("en-US");
 
         // Act
@@ -50,7 +50,8 @@ public class DescriptionRuleTests
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
         var culture = new CultureInfo("en-US");
@@ -67,7 +68,7 @@ public class DescriptionRuleTests
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.RecurringDaily("es-ES").Build();
+        var config = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("es-ES").Build();
         var culture = new CultureInfo("es-ES");
         var prefix = "Ocurre cada día. ";
 
@@ -80,4 +81,5 @@ public class DescriptionRuleTests
         // Note: If you implemented translations for "at" and "Starting on"
         // Here you could validate with .ShouldContain("a las") and .ShouldContain("Empezando el")
     }
+
 }

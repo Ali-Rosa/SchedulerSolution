@@ -106,4 +106,5 @@ public class DailyCalendarRuleTests
         // Assert
         result.ShouldBeTrue();
     }
+
 }

@@ -2,13 +2,15 @@
 using Scheduler.Domain.Strategies;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
+using Shouldly;
 
 namespace Scheduler.Domain.Tests.Services;
 
-public class CalculateNextExecution_ValidationTests
+public class Calculate_NextExecution_Generals_Validations_Tests
 {
     private readonly SchedulerService _service;
-    public CalculateNextExecution_ValidationTests() => _service = SchedulerServiceFactory.CreateDefault();
+
+    public Calculate_NextExecution_Generals_Validations_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
     public void CalculateNextExecution_WithNullConfig_ReturnsError()
@@ -20,32 +22,33 @@ public class CalculateNextExecution_ValidationTests
         var result = _service.CalculateNextExecution(currentDate, null!);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("The configuration cannot be null.", result.ErrorMessage);
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldBe("The configuration cannot be null.");
     }
 
     [Fact]
     public void CalculateNextExecution_WhenStrategyCombinationIsNotRegistered_ReturnsUnsupportedCombinationError()
     {
-
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
+
+        // We manually created a service with only one strategy to force a search failure
         var schedulerService = new SchedulerService(new IScheduleStrategy[]
         {
             new OnceDailyScheduleStrategy()
         });
-        var config = ScheduleConfigurationBuilder
-            .RecurringDaily()
-            .Build();
+
+        // We attempt to request a RecurringDaily that is not registered in this schedulerService
+        var config = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
 
         // Act
         var result = schedulerService.CalculateNextExecution(currentDate, config);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.Equal("Unsupported schedule and occurs combination.", result.ErrorMessage);
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldBe("Unsupported schedule and occurs combination.");
     }
 
     [Fact]
@@ -53,18 +56,19 @@ public class CalculateNextExecution_ValidationTests
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder
-            .OnceDaily()
-            .With_TimeZoneId("Invalid/Zone")
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_TimeZoneId("Invalid/Zone_Name")
             .Build();
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.NextExecutionTime);
-        Assert.StartsWith("Invalid TimeZoneId", result.ErrorMessage);
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        // We use ShouldStartWith because the message usually includes the invalid ID
+        result.ErrorMessage.ShouldStartWith("Invalid TimeZoneId");
     }
 
 }

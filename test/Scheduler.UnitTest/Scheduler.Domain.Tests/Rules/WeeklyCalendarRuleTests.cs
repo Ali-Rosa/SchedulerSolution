@@ -105,4 +105,5 @@ public class WeeklyCalendarRuleTests
         // Assert
         result.ShouldBeTrue("The modulo arithmetic should handle Sunday (0) correctly.");
     }
+
 }

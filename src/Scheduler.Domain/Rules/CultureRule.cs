@@ -23,7 +23,7 @@ public static class CultureRule
         if (config.FirstDayOfWeek.HasValue) return config.FirstDayOfWeek.Value;
 
         // Otherwise, we extract it from the culture (already validated beforehand).
-        var culture = new CultureInfo(config.Locale);
+        var culture = new CultureInfo(config.Locale!);
         return culture.DateTimeFormat.FirstDayOfWeek;
     }
 
@@ -32,4 +32,5 @@ public static class CultureRule
         // Safe method because it is called AFTER validation
         return new CultureInfo(locale);
     }
+
 }

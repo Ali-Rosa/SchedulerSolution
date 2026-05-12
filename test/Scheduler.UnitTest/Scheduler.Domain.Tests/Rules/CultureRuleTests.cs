@@ -39,8 +39,8 @@ public class CultureRuleTests
     public void FirstDayOfWeek_Should_Match_Culture_Defaults_When_Not_Overridden()
     {
         // Arrange
-        var configUS = ScheduleConfigurationBuilder.RecurringDaily("en-US").Build();
-        var configES = ScheduleConfigurationBuilder.RecurringDaily("es-ES").Build();
+        var configUS = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
+        var configES = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("es-ES").Build();
 
         // Act
         var firstDayUS = CultureRule.GetFirstDayOfWeek(configUS);
@@ -55,7 +55,8 @@ public class CultureRuleTests
     public void FirstDayOfWeek_Should_Use_Overridden_Value_Regardless_Of_Culture()
     {
         // Arrange: Culture is US (Sunday), but we manually forced Monday
-        var config = ScheduleConfigurationBuilder.RecurringDaily("en-US")
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
             .With_FirstDayOfWeek(DayOfWeek.Monday)
             .Build();
 
@@ -79,4 +80,5 @@ public class CultureRuleTests
         culture.ShouldNotBeNull();
         culture.Name.ShouldBe(locale);
     }
+
 }
