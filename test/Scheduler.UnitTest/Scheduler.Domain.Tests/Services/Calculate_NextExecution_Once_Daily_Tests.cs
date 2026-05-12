@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Services;
+﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
@@ -40,7 +41,49 @@ public class Calculate_NextExecution_Once_Daily_Tests
         result.NextExecutionTime.ShouldBe(currentDate);
     }
 
-    #endregion
+    [Fact]
+    public void ExecutionDateTimeLocal_Should_Be_Used_As_NextExecution()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+        result.Description.ShouldContain("Occurs once");
+        result.Description.ShouldContain("15/05/2026");
+        result.Description.ShouldContain("14:30");
+    }
+
+    [Fact]
+    public void Without_ExecutionDateTimeLocal_Should_Use_CurrentDate()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(currentDate);
+        result.Description.ShouldContain("Occurs once");
+        result.Description.ShouldContain("12/05/2026");
+        result.Description.ShouldContain("10:00");
+    }
+
+    #endregion Basic & Default Scenarios
 
     #region Execution Limits
 
@@ -90,7 +133,115 @@ public class Calculate_NextExecution_Once_Daily_Tests
         result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
     }
 
-    #endregion
+    #endregion Execution Limits
+
+    #region Date/Time Range Limits
+
+    [Fact]
+    public void ExecutionDateTimeLocal_Before_LimitsStartDateLocal_Should_Fail()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
+        var startLimit = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 10, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
+    }
+
+    [Fact]
+    public void ExecutionDateTimeLocal_After_LimitsEndDateLocal_Should_Fail()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
+        var endLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_EndDateLocal(endLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
+    }
+
+    [Fact]
+    public void ExecutionDateTimeLocal_Within_Valid_Range_Should_Succeed()
+    {
+        // Arrange
+        var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
+        var endLimit = new DateTimeOffset(2026, 5, 20, 23, 59, 59, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .With_Limits_EndDateLocal(endLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+    }
+
+    [Fact]
+    public void Boundary_Execution_At_StartDate_Should_Succeed()
+    {
+        // Arrange: Execution exactly at the start date boundary
+        var startLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+    }
+
+    [Fact]
+    public void Boundary_Execution_At_EndDate_Should_Succeed()
+    {
+        // Arrange: Execution exactly at the end date boundary
+        var endLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_EndDateLocal(endLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+    }
+
+    #endregion Date/Time Range Limits
 
     #region TimeZone & Localization
 
@@ -132,6 +283,186 @@ public class Calculate_NextExecution_Once_Daily_Tests
         result.Description.ShouldContain(startLimit.ToString("dd/MM/yyyy"));
     }
 
-    #endregion
+    #endregion TimeZone & Localization
+
+    #region Current Date Comparison
+
+    [Fact]
+    public void ExecutionDateTime_Equal_To_CurrentDate_Should_Use_ExecutionDateTime()
+    {
+        // Arrange
+        var dateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(dateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(dateTime, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Date.ShouldBe(dateTime.Date);
+        result.NextExecutionTime.Value.Hour.ShouldBe(dateTime.Hour);
+        result.NextExecutionTime.Value.Minute.ShouldBe(dateTime.Minute);
+    }
+
+    [Fact]
+    public void ExecutionDateTime_Before_CurrentDate_Should_Fail()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("DateTime cannot be less than CurrentDate");
+    }
+
+    [Fact]
+    public void ExecutionDateTime_After_CurrentDate_Should_Use_ExecutionDateTime()
+    {
+        // Arrange
+        var currentDate = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Date.ShouldBe(executionDateTime.Date);
+        result.NextExecutionTime.Value.Hour.ShouldBe(executionDateTime.Hour);
+        result.NextExecutionTime.Value.Minute.ShouldBe(executionDateTime.Minute);
+    }
+
+    #endregion Current Date Comparison
+
+    #region Description Formatting
+
+    [Fact]
+    public void Description_Should_Include_StartDate_When_LimitsStartDateLocal_Exists()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldContain("Occurs once");
+        result.Description.ShouldContain("15/05/2026");
+        result.Description.ShouldContain("starting on 10/05/2026");
+    }
+
+    [Fact]
+    public void Description_Should_Not_Include_StartDate_When_LimitsStartDateLocal_Is_Null()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldNotContain("starting on");
+    }
+
+    [Fact]
+    public void Description_Should_Respect_TimeZone_Conversion()
+    {
+        // Arrange: 10:00 UTC in CST (UTC-6 in winter) = 04:00 CST
+        var executionDateTime = new DateTimeOffset(2026, 1, 15, 10, 0, 0, TimeSpan.Zero);
+        var cstZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+        var currentDate = new DateTimeOffset(2026, 1, 10, 0, 0, 0, TimeSpan.Zero); // Before execution
+
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_TimeZoneId(cstZone.Id)
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        // The result should be converted to CST time (10:00 UTC - 6 hours = 04:00 CST)
+        result.NextExecutionTime.Value.Hour.ShouldBe(4);
+        result.NextExecutionTime.Value.Minute.ShouldBe(0);
+        // The description should show the local time (4:00 AM)
+        result.Description.ShouldContain("04:00");
+    }
+
+    #endregion Description Formatting
+
+    #region Logical Consistency
+
+    [Fact]
+    public void RecursEvery_Should_Be_Ignored_For_Once_Schedule()
+    {
+        // Arrange: RecursEvery value should be irrelevant
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_RecursEvery(5) // Should be ignored
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+    }
+
+    [Fact]
+    public void DailyFrecuency_Should_Be_Ignored_For_Once_Schedule()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert: Only one execution, not multiple
+        result.IsSuccess.ShouldBeTrue();
+        result.NextsExecutionsTimes.Count().ShouldBe(1);
+        result.NextExecutionTime.ShouldBe(executionDateTime);
+    }
+
+    #endregion Logical Consistency
 
 }

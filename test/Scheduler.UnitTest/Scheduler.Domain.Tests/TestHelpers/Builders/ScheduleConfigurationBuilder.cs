@@ -44,7 +44,7 @@ public sealed class ScheduleConfigurationBuilder
 
     public ScheduleConfigurationBuilder With_Limits_EndDateLocal(DateTimeOffset limitsEndDateLocal) { _limitsEndDateLocal = limitsEndDateLocal; return this; }
 
-    public ScheduleConfigurationBuilder With_Occurs(OccursType occurs) { _occurs = occurs; return this; }
+    //public ScheduleConfigurationBuilder With_Occurs(OccursType occurs) { _occurs = occurs; return this; }
 
     public ScheduleConfigurationBuilder With_Locale(string locale) { _locale = locale; return this; }
 

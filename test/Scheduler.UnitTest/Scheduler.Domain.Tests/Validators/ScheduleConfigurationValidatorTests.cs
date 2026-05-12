@@ -2,6 +2,7 @@
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
+using Xunit.Sdk;
 
 namespace Scheduler.Domain.Tests.Validators;
 
@@ -93,5 +94,119 @@ public class ScheduleConfigurationValidatorTests
         result.IsSuccess.ShouldBeFalse();
         result.ErrorMessage.ShouldBe("The Locale is required.");
     }
+
+    #region Validations
+
+    [Fact]
+    public void Recurring_Schedule_With_Zero_RecursEvery_Should_Be_Rejected()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
+            .With_RecursEvery(0)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The Every value must be greater than 0.");
+    }
+
+    [Fact]
+    public void Weekly_Recurring_Without_DaysOfWeek_Should_Be_Rejected()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
+            .Build(); // No days specified
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("Weekly configuration is required for Weekly recurring schedules.");
+    }
+
+    [Fact]
+    public void Weekly_Recurring_With_Days_Should_Succeed_Validation()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringWeekly()
+            .With_Locale("en-US")
+            .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Wednesday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Once_Schedule_ExecutionDateTime_Before_StartLimit_Should_Be_Rejected()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
+        var startLimit = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero), config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
+    }
+
+    [Fact]
+    public void Once_Schedule_ExecutionDateTime_After_EndLimit_Should_Be_Rejected()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero);
+        var endLimit = new DateTimeOffset(2026, 5, 15, 23, 59, 59, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_EndDateLocal(endLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
+    }
+
+    [Fact]
+    public void Once_Schedule_ExecutionDateTime_Within_Limits_Should_Succeed()
+    {
+        // Arrange
+        var executionDateTime = new DateTimeOffset(2026, 5, 15, 10, 0, 0, TimeSpan.Zero);
+        var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
+        var endLimit = new DateTimeOffset(2026, 5, 20, 23, 59, 59, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
+            .With_ExecutionDateTimeLocal(executionDateTime)
+            .With_Limits_StartDateLocal(startLimit)
+            .With_Limits_EndDateLocal(endLimit)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    #endregion Validations
 
 }

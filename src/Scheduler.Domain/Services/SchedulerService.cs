@@ -19,10 +19,6 @@ public class SchedulerService
         if (!_strategies.TryGetValue(key, out var strategy))
             return new SchedulerResponse("Unsupported schedule and occurs combination.");
 
-        var (isValidStrategy, strategyError) = ScheduleStrategyValidator.Validate(config);
-        if (!isValidStrategy)
-            return new SchedulerResponse(strategyError);
-
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZoneId);
         return strategy.CalculateNextExecution(currentDateUtc, config, timeZone);
 

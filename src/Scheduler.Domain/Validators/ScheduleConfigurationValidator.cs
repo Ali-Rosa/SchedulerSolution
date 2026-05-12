@@ -27,6 +27,9 @@ public static class ScheduleConfigurationValidator
         if (!TryGetTimeZone(config.TimeZoneId, out var timeZone))
             return (false, $"Invalid TimeZoneId: {config.TimeZoneId}");
 
+        if (config.Type == ScheduleType.Recurring && config.Occurs == OccursType.Weekly && config.Weekly is null)
+            return (false, "Weekly configuration is required for Weekly recurring schedules.");
+
         return (true, string.Empty);
     }
 
