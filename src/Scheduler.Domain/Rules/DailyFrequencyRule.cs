@@ -2,9 +2,9 @@
 
 namespace Scheduler.Domain.Rules;
 
-public static class DailyFrecuencyRule
+public static class DailyFrequencyRule
 {
-    public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrecuency schedule, TimeZoneInfo timeZone)
+    public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrequency schedule, TimeZoneInfo timeZone)
     {
         // Single execution in the day (OccursOnceEnable)
         if (schedule.OccursOnceEnable)
@@ -36,7 +36,7 @@ public static class DailyFrecuencyRule
                     TimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
                     TimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
                     TimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
-                    _ => throw new ArgumentOutOfRangeException()
+                    _ => end.AddTicks(1)
                 };
             }
         }

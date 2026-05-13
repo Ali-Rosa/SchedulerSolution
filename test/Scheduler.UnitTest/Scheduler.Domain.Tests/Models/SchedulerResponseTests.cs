@@ -19,8 +19,8 @@ public class SchedulerResponseTests
         // Assert
         response.IsSuccess.ShouldBeTrue();
         response.NextExecutionTime.ShouldBe(earliestDate); 
-        response.NextsExecutionsTimes.First().ShouldBe(earliestDate);
-        response.NextsExecutionsTimes.Count().ShouldBe(2);
+        response.NextExecutionTimes.First().ShouldBe(earliestDate);
+        response.NextExecutionTimes.Count().ShouldBe(2);
         response.ErrorMessage.ShouldBeEmpty();
     }
 
@@ -36,7 +36,7 @@ public class SchedulerResponseTests
         // Assert
         response.IsSuccess.ShouldBeFalse();
         response.NextExecutionTime.ShouldBeNull();
-        response.NextsExecutionsTimes.ShouldBeEmpty();
+        response.NextExecutionTimes.ShouldBeEmpty();
         response.ErrorMessage.ShouldBe(expectedMessage);
     }
 
@@ -48,8 +48,8 @@ public class SchedulerResponseTests
 
         // Assert
         response.IsSuccess.ShouldBeTrue();
-        response.NextsExecutionsTimes.ShouldNotBeNull();
-        response.NextsExecutionsTimes.ShouldBeEmpty();
+        response.NextExecutionTimes.ShouldNotBeNull();
+        response.NextExecutionTimes.ShouldBeEmpty();
         response.NextExecutionTime.ShouldBeNull();
     }
 
@@ -61,7 +61,7 @@ public class SchedulerResponseTests
 
         // Assert
         response.NextExecutionTime.ShouldBeNull();
-        response.NextsExecutionsTimes.ShouldBeNull();
+        response.NextExecutionTimes.ShouldBeNull();
     }
 
 }

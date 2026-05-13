@@ -444,14 +444,14 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void DailyFrecuency_Should_Be_Ignored_For_Once_Schedule()
+    public void DailyFrequency_Should_Be_Ignored_For_Once_Schedule()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.OnceDaily()
             .With_Locale("en-US")
             .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act
@@ -459,7 +459,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
 
         // Assert: Only one execution, not multiple
         result.IsSuccess.ShouldBeTrue();
-        result.NextsExecutionsTimes.Count().ShouldBe(1);
+        result.NextExecutionTimes.Count().ShouldBe(1);
         result.NextExecutionTime.ShouldBe(executionDateTime);
     }
 

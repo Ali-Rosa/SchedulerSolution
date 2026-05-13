@@ -20,7 +20,7 @@ public class DescriptionRuleTests
         var culture = new CultureInfo("en-US");
 
         // Act
-        var result = DescriptionRule.FormatMenssajeDescrictionResponse(prefix, nextExecution, config, TimeZoneInfo.Utc, culture);
+        var result = DescriptionRule.BuildExecutionDescription(prefix, nextExecution, config, TimeZoneInfo.Utc, culture);
 
         // Assert
         result.ShouldStartWith(prefix);
@@ -39,7 +39,7 @@ public class DescriptionRuleTests
         var culture = new CultureInfo("en-US");
 
         // Act
-        var result = DescriptionRule.FormatMenssajeDescrictionResponse("Prefix. ", nextExecution, config, _cstZone, culture);
+        var result = DescriptionRule.BuildExecutionDescription("Prefix. ", nextExecution, config, _cstZone, culture);
 
         // Assert
         result.ShouldContain("at 05:00");
@@ -52,12 +52,12 @@ public class DescriptionRuleTests
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
         var culture = new CultureInfo("en-US");
 
         // Act
-        var result = DescriptionRule.FormatMenssajeDescrictionResponse("Daily. ", nextExecution, config, TimeZoneInfo.Utc, culture);
+        var result = DescriptionRule.BuildExecutionDescription("Daily. ", nextExecution, config, TimeZoneInfo.Utc, culture);
 
         // Assert
         result.ShouldContain("Every 2 hours");
@@ -73,7 +73,7 @@ public class DescriptionRuleTests
         var prefix = "Ocurre cada día. ";
 
         // Act
-        var result = DescriptionRule.FormatMenssajeDescrictionResponse(prefix, nextExecution, config, TimeZoneInfo.Utc, culture);
+        var result = DescriptionRule.BuildExecutionDescription(prefix, nextExecution, config, TimeZoneInfo.Utc, culture);
 
         // Assert
         result.ShouldStartWith("Ocurre cada día.");

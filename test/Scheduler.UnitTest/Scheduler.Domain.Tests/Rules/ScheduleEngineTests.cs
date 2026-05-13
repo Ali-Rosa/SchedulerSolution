@@ -32,7 +32,7 @@ public class ScheduleEngineTests
 
         // Assert: Only 5 results, even though we could iterate for 366 days
         result.IsSuccess.ShouldBeTrue();
-        result.NextsExecutionsTimes.Count().ShouldBe(5);
+        result.NextExecutionTimes.Count().ShouldBe(5);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class ScheduleEngineTests
 
         // Assert: Limited to 366 iterations at most
         result.IsSuccess.ShouldBeTrue();
-        result.NextsExecutionsTimes.Count().ShouldBeLessThanOrEqualTo(366);
+        result.NextExecutionTimes.Count().ShouldBeLessThanOrEqualTo(366);
     }
 
     #endregion Iteration Limit Tests
@@ -116,7 +116,7 @@ public class ScheduleEngineTests
 
         // Assert: All results should be <= endLimit
         result.IsSuccess.ShouldBeTrue();
-        foreach (var execution in result.NextsExecutionsTimes)
+        foreach (var execution in result.NextExecutionTimes)
         {
             execution.ShouldBeLessThanOrEqualTo(endLimit);
         }
@@ -148,7 +148,7 @@ public class ScheduleEngineTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        foreach (var execution in result.NextsExecutionsTimes)
+        foreach (var execution in result.NextExecutionTimes)
         {
             execution.ShouldBeGreaterThanOrEqualTo(startLimit);
             execution.ShouldBeLessThanOrEqualTo(endLimit);
@@ -181,10 +181,10 @@ public class ScheduleEngineTests
 
         // Assert: Should find May 2, 4, 6 (all even days)
         result.IsSuccess.ShouldBeTrue();
-        result.NextsExecutionsTimes.Count().ShouldBe(3);
-        result.NextsExecutionsTimes.ElementAt(0).Day.ShouldBe(2);
-        result.NextsExecutionsTimes.ElementAt(1).Day.ShouldBe(4);
-        result.NextsExecutionsTimes.ElementAt(2).Day.ShouldBe(6);
+        result.NextExecutionTimes.Count().ShouldBe(3);
+        result.NextExecutionTimes.ElementAt(0).Day.ShouldBe(2);
+        result.NextExecutionTimes.ElementAt(1).Day.ShouldBe(4);
+        result.NextExecutionTimes.ElementAt(2).Day.ShouldBe(6);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class ScheduleEngineTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        var executions = result.NextsExecutionsTimes.ToList();
+        var executions = result.NextExecutionTimes.ToList();
         for (int i = 0; i < executions.Count - 1; i++)
         {
             executions[i].ShouldBeLessThan(executions[i + 1]);
@@ -247,8 +247,8 @@ public class ScheduleEngineTests
 
         // Assert: BuildDescriptionLogic should receive the first execution
         result.IsSuccess.ShouldBeTrue();
-        capturedDate.ShouldBe(result.NextsExecutionsTimes.First());
-        result.Description.ShouldContain(result.NextsExecutionsTimes.First().Date.ToString());
+        capturedDate.ShouldBe(result.NextExecutionTimes.First());
+        result.Description.ShouldContain(result.NextExecutionTimes.First().Date.ToString());
     }
 
     #endregion Description Generation

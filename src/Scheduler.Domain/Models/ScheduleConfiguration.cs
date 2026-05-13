@@ -11,6 +11,6 @@ public record ScheduleConfiguration (
     string TimeZoneId,
     string? Locale = null,
     DayOfWeek? FirstDayOfWeek = null,
-    ScheduleDailyFrecuency? DailyFrecuency = null,
+    ScheduleDailyFrequency? DailyFrequency = null,
     ScheduleWeekly? Weekly = null
 );

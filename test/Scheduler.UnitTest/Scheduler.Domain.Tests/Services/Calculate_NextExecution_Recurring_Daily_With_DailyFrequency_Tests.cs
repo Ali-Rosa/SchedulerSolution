@@ -18,7 +18,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     public void Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
     {
         // Arrange: Conflict scenario (both modes on True). 'Eleven' must win.
-        var frequencyAmbigua = new ScheduleDailyFrecuency(
+        var frequencyAmbigua = new ScheduleDailyFrequency(
             OccursOnceEnable: true,
             OnceTime: new TimeOnly(15, 0), // 3 PM
             OccursEveryEnable: true,       // Also enabled (User error)
@@ -32,7 +32,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency(frequencyAmbigua)
+            .With_DailyFrequency(frequencyAmbigua)
             .Build();
 
         // Act
@@ -56,7 +56,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursOnce(new TimeOnly(15, 0))
+            .With_DailyFrequency_OccursOnce(new TimeOnly(15, 0))
             .Build();
 
         // Act
@@ -76,7 +76,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursOnce(new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursOnce(new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -100,7 +100,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -120,7 +120,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(3)
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -142,7 +142,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursEvery(unit, interval, new TimeOnly(12, 0, 0), new TimeOnly(13, 0, 0))
+            .With_DailyFrequency_OccursEvery(unit, interval, new TimeOnly(12, 0, 0), new TimeOnly(13, 0, 0))
             .Build();
 
         // Act
@@ -167,7 +167,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -190,7 +190,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrecuency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act

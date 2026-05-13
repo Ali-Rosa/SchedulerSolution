@@ -32,7 +32,7 @@ public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
             , (nextDate) => {
                 var days = string.Join(", ", config.Weekly.DaysOfWeek);
                 var prefix = $"Occurs every {config.RecursEvery} week(s) on {days}. ";
-                return DescriptionRule.FormatMenssajeDescrictionResponse(prefix, nextDate, config, timeZone, cultureInfo);
+                return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );
     }

@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Services;
+﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
@@ -205,6 +206,42 @@ public class ScheduleConfigurationValidatorTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Undefined_IntervalUnit_In_DailyFrequency_Should_Be_Rejected()
+    {
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
+            .With_DailyFrequency_OccursEvery((TimeIntervalUnit)999, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("Not defined interval unit for daily frequency.");
+        result.NextExecutionTime.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void Zero_Or_Negative_FrequencyInterval_Should_Be_Rejected(int invalidInterval)
+    {
+        var config = ScheduleConfigurationBuilder.RecurringDaily()
+            .With_Locale("en-US")
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, invalidInterval, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldBe("The frequency interval must be greater than 0.");
+        result.NextExecutionTime.ShouldBeNull();
     }
 
     #endregion Validations

@@ -30,6 +30,15 @@ public static class ScheduleConfigurationValidator
         if (config.Type == ScheduleType.Recurring && config.Occurs == OccursType.Weekly && config.Weekly is null)
             return (false, "Weekly configuration is required for Weekly recurring schedules.");
 
+        if (config.DailyFrequency != null && (config.DailyFrequency.OccursEveryEnable && !config.DailyFrequency.OccursOnceEnable))
+        {
+            if (!Enum.IsDefined(config.DailyFrequency.IntervalUnit))
+                return (false, "Not defined interval unit for daily frequency.");
+
+            if (config.DailyFrequency.FrequencyInterval <= 0)
+                return (false, "The frequency interval must be greater than 0.");
+        }
+
         return (true, string.Empty);
     }
 

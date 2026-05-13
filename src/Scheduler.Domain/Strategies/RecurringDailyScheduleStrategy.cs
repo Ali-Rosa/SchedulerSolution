@@ -25,7 +25,7 @@ public sealed class RecurringDailyScheduleStrategy : IScheduleStrategy
             , (currentDay, startDay) => {return DailyCalendarRule.IsValidDay(currentDay, startDay, config.RecursEvery);}
             , (nextDate) => {
                 var prefix = config.RecursEvery == 1 ? "Occurs every day. " : $"Occurs every {config.RecursEvery} days. ";
-                return DescriptionRule.FormatMenssajeDescrictionResponse(prefix, nextDate, config, timeZone, cultureInfo);
+                return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );
     }

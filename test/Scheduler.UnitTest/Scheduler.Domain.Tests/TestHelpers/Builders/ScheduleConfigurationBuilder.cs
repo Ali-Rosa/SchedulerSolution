@@ -14,7 +14,7 @@ public sealed class ScheduleConfigurationBuilder
     private DateTimeOffset? _executionDateTimeLocal;
     private DateTimeOffset? _limitsStartDateLocal;
     private DateTimeOffset? _limitsEndDateLocal;
-    private ScheduleDailyFrecuency? _dailyFrecuency;
+    private ScheduleDailyFrequency? _dailyFrequency;
     private ScheduleWeekly? _weekly;
 
     #region Entry Points
@@ -54,21 +54,21 @@ public sealed class ScheduleConfigurationBuilder
 
     #region Daily Frequency Settings
 
-    public ScheduleConfigurationBuilder With_DailyFrecuency(ScheduleDailyFrecuency dailyFrecuency)
+    public ScheduleConfigurationBuilder With_DailyFrequency(ScheduleDailyFrequency dailyFrequency)
     {
-        _dailyFrecuency = dailyFrecuency;
+        _dailyFrequency = dailyFrequency;
         return this;
     }
 
-    public ScheduleConfigurationBuilder With_DailyFrecuency_OccursOnce(TimeOnly onceTime)
+    public ScheduleConfigurationBuilder With_DailyFrequency_OccursOnce(TimeOnly onceTime)
     {
-        _dailyFrecuency = new ScheduleDailyFrecuency(true, onceTime, false, default, 0, default, default);
+        _dailyFrequency = new ScheduleDailyFrequency(true, onceTime, false, default, 0, default, default);
         return this;
     }
 
-    public ScheduleConfigurationBuilder With_DailyFrecuency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
+    public ScheduleConfigurationBuilder With_DailyFrequency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
     {
-        _dailyFrecuency = new ScheduleDailyFrecuency(false, default, true, intervalUnit, frequencyInterval, startTime, endTime);
+        _dailyFrequency = new ScheduleDailyFrequency(false, default, true, intervalUnit, frequencyInterval, startTime, endTime);
         return this;
     }
 
@@ -105,7 +105,7 @@ public sealed class ScheduleConfigurationBuilder
             _timeZoneId,
             _locale,
             _firstDayOfWeek,
-            _dailyFrecuency,
+            _dailyFrequency,
             _weekly
         );
     }

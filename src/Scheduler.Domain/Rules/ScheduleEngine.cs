@@ -53,8 +53,8 @@ public static class ScheduleEngine
 
     private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
-        var allDayExecutions = (config.DailyFrecuency != null) 
-            ? DailyFrecuencyRule.GetExecutionsForDay(day, config.DailyFrecuency, timeZone) 
+        var allDayExecutions = (config.DailyFrequency != null) 
+            ? DailyFrequencyRule.GetExecutionsForDay(day, config.DailyFrequency, timeZone) 
             : GenerateSingleExecution(day, config, timeZone, anchorTime);
 
         return allDayExecutions
