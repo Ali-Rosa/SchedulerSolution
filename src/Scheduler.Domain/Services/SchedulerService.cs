@@ -6,16 +6,16 @@ namespace Scheduler.Domain.Services;
 
 public class SchedulerService
 {
-    private readonly Dictionary<ScheduleStrategyKey, IScheduleStrategy> _strategies;
-    public SchedulerService(IEnumerable<IScheduleStrategy> strategies) => _strategies = strategies.ToDictionary(s => s.Key);
+    private readonly Dictionary<SchedulerStrategyKey, ISchedulerStrategy> _strategies;
+    public SchedulerService(IEnumerable<ISchedulerStrategy> strategies) => _strategies = strategies.ToDictionary(s => s.Key);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config)
+    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config)
     {
         var (isValidConfig, configError) = ScheduleConfigurationValidator.Validate(config);
         if (!isValidConfig)
             return new SchedulerResponse(configError);
 
-        var key = new ScheduleStrategyKey(config.Type, config.Occurs);
+        var key = new SchedulerStrategyKey(config.Type, config.Occurs);
         if (!_strategies.TryGetValue(key, out var strategy))
             return new SchedulerResponse("Unsupported schedule and occurs combination.");
 

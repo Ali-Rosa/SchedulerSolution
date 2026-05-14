@@ -213,7 +213,7 @@ public class ScheduleConfigurationValidatorTests
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrequency_OccursEvery((TimeIntervalUnit)999, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery((SchedulerTimeIntervalUnit)999, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act
@@ -232,7 +232,7 @@ public class ScheduleConfigurationValidatorTests
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, invalidInterval, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, invalidInterval, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act

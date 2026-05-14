@@ -34,9 +34,9 @@ public class Calculate_NextExecution_Generals_Validations_Tests
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
 
         // We manually created a service with only one strategy to force a search failure
-        var schedulerService = new SchedulerService(new IScheduleStrategy[]
+        var schedulerService = new SchedulerService(new ISchedulerStrategy[]
         {
-            new OnceDailyScheduleStrategy()
+            new OnceDailySchedulerStrategy()
         });
 
         // We attempt to request a RecurringDaily that is not registered in this schedulerService

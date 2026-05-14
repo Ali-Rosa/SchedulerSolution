@@ -1,10 +1,10 @@
 namespace Scheduler.Domain.Models;
 
-public record ScheduleConfiguration (
+public record SchedulerConfiguration (
     bool Enabled,
-    ScheduleType Type,
+    SchedulerType Type,
     DateTimeOffset? ExecutionDateTimeLocal,
-    OccursType Occurs,
+    SchedulerOccursType Occurs,
     int RecursEvery,
     DateTimeOffset? LimitsStartDateLocal,
     DateTimeOffset? LimitsEndDateLocal,
@@ -12,5 +12,6 @@ public record ScheduleConfiguration (
     string? Locale = null,
     DayOfWeek? FirstDayOfWeek = null,
     ScheduleDailyFrequency? DailyFrequency = null,
-    ScheduleWeekly? Weekly = null
+    SchedulerWeekly? Weekly = null,
+    SchedulerMonthly? Monthly = null
 );

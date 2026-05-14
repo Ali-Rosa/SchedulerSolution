@@ -4,7 +4,7 @@ public sealed record ScheduleDailyFrequency (
     bool OccursOnceEnable,
     TimeOnly OnceTime,
     bool OccursEveryEnable,
-    TimeIntervalUnit IntervalUnit,
+    SchedulerTimeIntervalUnit IntervalUnit,
     int FrequencyInterval,
     TimeOnly StartTime,
     TimeOnly EndTime

@@ -3,14 +3,12 @@ using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Strategies;
 
-public sealed class RecurringWeeklyScheduleStrategy : IScheduleStrategy
+public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
 {
-    public ScheduleStrategyKey Key => new(ScheduleType.Recurring, OccursType.Weekly);
+    public SchedulerStrategyKey Key => new(SchedulerType.Recurring, SchedulerOccursType.Weekly);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        if (!CultureRule.IsValid(config.Locale!))
-            return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");
 
         if (config.Weekly!.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
         {

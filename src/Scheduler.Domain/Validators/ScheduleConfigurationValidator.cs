@@ -1,10 +1,11 @@
 ﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Validators;
 
 public static class ScheduleConfigurationValidator
 {
-    public static (bool IsValid, string ErrorMessage) Validate(ScheduleConfiguration config)
+    public static (bool IsValid, string ErrorMessage) Validate(SchedulerConfiguration config)
     {
         if (config is null)
             return (false, "The configuration cannot be null.");
@@ -21,14 +22,14 @@ public static class ScheduleConfigurationValidator
         if (string.IsNullOrWhiteSpace(config.Locale))
             return (false, "The Locale is required.");
 
+        if (!CultureRule.IsValid(config.Locale))
+            return (false, $"The culture '{config.Locale}' is not supported by the system.");
+
         if (config.RecursEvery < 0)
             return (false, "The Every value cannot be negative.");
 
         if (!TryGetTimeZone(config.TimeZoneId, out var timeZone))
             return (false, $"Invalid TimeZoneId: {config.TimeZoneId}");
-
-        if (config.Type == ScheduleType.Recurring && config.Occurs == OccursType.Weekly && config.Weekly is null)
-            return (false, "Weekly configuration is required for Weekly recurring schedules.");
 
         if (config.DailyFrequency != null && (config.DailyFrequency.OccursEveryEnable && !config.DailyFrequency.OccursOnceEnable))
         {
@@ -38,6 +39,12 @@ public static class ScheduleConfigurationValidator
             if (config.DailyFrequency.FrequencyInterval <= 0)
                 return (false, "The frequency interval must be greater than 0.");
         }
+
+        if (config.Type == SchedulerType.Recurring && config.Occurs == SchedulerOccursType.Weekly && config.Weekly is null)
+            return (false, "Weekly configuration is required for Weekly recurring schedules.");
+
+        if (config.Type == SchedulerType.Recurring && config.Occurs == SchedulerOccursType.Monthly && config.Monthly is null)
+            return (false, "Monthly configuration is required for Monthly recurring schedules.");
 
         return (true, string.Empty);
     }

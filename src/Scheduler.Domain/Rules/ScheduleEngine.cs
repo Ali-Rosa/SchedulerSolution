@@ -6,11 +6,12 @@ public static class ScheduleEngine
 {
     public static SchedulerResponse IterateAndCalculate (
         DateTimeOffset currentDateUtc
-        , ScheduleConfiguration config
+        , SchedulerConfiguration config
         , TimeZoneInfo timeZone
         , int maxOccurrences
         , Func<DateOnly, DateOnly, bool> isDayValidLogic
         , Func<DateTimeOffset, string> buildDescriptionLogic
+        , int maxSearchDays = 1826 //safety parameter (5 years)
     )
     {
         var results = new List<DateTimeOffset>();
@@ -23,7 +24,7 @@ public static class ScheduleEngine
 
         var searchCursorLocal = currentLocal > limitStartLocal ? currentLocal : limitStartLocal;
 
-        for (int i = 0; i < 366 && results.Count < maxOccurrences; i++)
+        for (int i = 0; i < maxSearchDays && results.Count < maxOccurrences; i++)
         {
             var currentDay = DateOnly.FromDateTime(searchCursorLocal.DateTime);
 
@@ -51,7 +52,7 @@ public static class ScheduleEngine
         return new SchedulerResponse(results, description);
     }
 
-    private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
+    private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
         var allDayExecutions = (config.DailyFrequency != null) 
             ? DailyFrequencyRule.GetExecutionsForDay(day, config.DailyFrequency, timeZone) 
@@ -64,7 +65,7 @@ public static class ScheduleEngine
             .OrderBy(e => e);
     }
 
-    private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, ScheduleConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
+    private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, SchedulerConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
         TimeSpan time;
 

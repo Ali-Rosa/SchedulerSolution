@@ -36,28 +36,31 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void Should_Stop_At_366_Day_Limit()
+    public void Should_Stop_At_MaxSearchDays_Limit()
     {
-        // Arrange: Request 500 occurrences (impossible in 366 iterations), daily every day
+        // Arrange: Asked for 500 occurrences, but we will limit the search to only 10 days.
         var currentDate = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_RecursEvery(1)
+            .With_RecursEvery(1) // It happens every day
             .Build();
+
+        int searchLimitDays = 10;
 
         // Act
         var result = ScheduleEngine.IterateAndCalculate(
-            currentDate,
-            config,
-            _utcZone,
-            500,
-            (currentDay, startDay) => DailyCalendarRule.IsValidDay(currentDay, startDay, 1),
-            (nextDate) => "Test"
+            currentDateUtc: currentDate,
+            config: config,
+            timeZone: _utcZone,
+            maxOccurrences: 500, // Impossible to achieve in 10 days
+            isDayValidLogic: (currentDay, startDay) => DailyCalendarRule.IsValidDay(currentDay, startDay, 1),
+            buildDescriptionLogic: (nextDate) => "Test",
+            maxSearchDays: searchLimitDays
         );
 
-        // Assert: Limited to 366 iterations at most
+        // Assert: The engine should have given up after 10 days.
         result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTimes.Count().ShouldBeLessThanOrEqualTo(366);
+        result.NextExecutionTimes.Count().ShouldBe(searchLimitDays - 1); // We expect 9 occurrences: Jan 2 to Jan 10 (inclusive), since Jan 1 is the current date and should not be included.
     }
 
     #endregion Iteration Limit Tests

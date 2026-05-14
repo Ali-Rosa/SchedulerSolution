@@ -7,11 +7,12 @@ internal static class SchedulerServiceFactory
 {
     public static SchedulerService CreateDefault()
     {
-        return new SchedulerService(new IScheduleStrategy[]
+        return new SchedulerService(new ISchedulerStrategy[]
         {
-            new OnceDailyScheduleStrategy(),
-            new RecurringDailyScheduleStrategy(),
-            new RecurringWeeklyScheduleStrategy()
+            new OnceDailySchedulerStrategy(),
+            new RecurringDailySchedulerStrategy(),
+            new RecurringWeeklySchedulerStrategy(),
+            new RecurringMonthlySchedulerStrategy()
         });
     }
 }

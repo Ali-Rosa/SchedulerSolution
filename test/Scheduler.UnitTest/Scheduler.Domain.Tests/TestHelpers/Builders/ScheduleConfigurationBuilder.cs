@@ -5,8 +5,8 @@ namespace Scheduler.Domain.Tests.TestHelpers.Builders;
 public sealed class ScheduleConfigurationBuilder
 {
     private bool _enabled = true;
-    private ScheduleType _type = ScheduleType.Once;
-    private OccursType _occurs = OccursType.Daily;
+    private SchedulerType _type = SchedulerType.Once;
+    private SchedulerOccursType _occurs = SchedulerOccursType.Daily;
     private int _recursEvery = 1;
     private string _timeZoneId = TimeZoneInfo.Utc.Id;
     private string? _locale;
@@ -15,18 +15,22 @@ public sealed class ScheduleConfigurationBuilder
     private DateTimeOffset? _limitsStartDateLocal;
     private DateTimeOffset? _limitsEndDateLocal;
     private ScheduleDailyFrequency? _dailyFrequency;
-    private ScheduleWeekly? _weekly;
+    private SchedulerWeekly? _weekly;
+    private SchedulerMonthly? _monthly;
 
     #region Entry Points
 
     public static ScheduleConfigurationBuilder OnceDaily()
-        => new() { _type = ScheduleType.Once, _recursEvery = 0, _occurs = OccursType.Daily };
+        => new() { _type = SchedulerType.Once, _recursEvery = 0, _occurs = SchedulerOccursType.Daily };
 
     public static ScheduleConfigurationBuilder RecurringDaily()
-        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Daily };
+        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = SchedulerOccursType.Daily };
 
     public static ScheduleConfigurationBuilder RecurringWeekly()
-        => new() { _type = ScheduleType.Recurring, _recursEvery = 1, _occurs = OccursType.Weekly };
+        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = SchedulerOccursType.Weekly };
+
+    public static ScheduleConfigurationBuilder RecurringMonthly()
+        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = SchedulerOccursType.Monthly };
 
     #endregion Entry Points
 
@@ -66,7 +70,7 @@ public sealed class ScheduleConfigurationBuilder
         return this;
     }
 
-    public ScheduleConfigurationBuilder With_DailyFrequency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
+    public ScheduleConfigurationBuilder With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
     {
         _dailyFrequency = new ScheduleDailyFrequency(false, default, true, intervalUnit, frequencyInterval, startTime, endTime);
         return this;
@@ -78,23 +82,41 @@ public sealed class ScheduleConfigurationBuilder
 
     public ScheduleConfigurationBuilder With_WeeklyDays(params DayOfWeek[] days)
     {
-        _weekly = new ScheduleWeekly(days);
-        _occurs = OccursType.Weekly;
+        _weekly = new SchedulerWeekly(days);
+        _occurs = SchedulerOccursType.Weekly;
         return this;
     }
 
     #endregion Weekly Settings
 
+    #region Monthly Settings
+
+    public ScheduleConfigurationBuilder With_MonthlySpecificDay(int dayNumber)
+    {
+        _monthly = new SchedulerMonthly(true, dayNumber, null, null);
+        _occurs = SchedulerOccursType.Monthly;
+        return this;
+    }
+
+    public ScheduleConfigurationBuilder With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType)
+    {
+        _monthly = new SchedulerMonthly(false, null, ordinal, dayType);
+        _occurs = SchedulerOccursType.Monthly;
+        return this;
+    }
+
+    #endregion Monthly Settings
+
     #region For Invalid Configurations
 
-    public ScheduleConfigurationBuilder With_Invalid_ScheduleType() { _type = (ScheduleType)1222; return this; }
-    public ScheduleConfigurationBuilder With_Invalid_OccursType() { _occurs = (OccursType)1999; return this; }
+    public ScheduleConfigurationBuilder With_Invalid_ScheduleType() { _type = (SchedulerType)1222; return this; }
+    public ScheduleConfigurationBuilder With_Invalid_OccursType() { _occurs = (SchedulerOccursType)1999; return this; }
     
     #endregion For Invalid Configurations
 
-    public ScheduleConfiguration Build()
+    public SchedulerConfiguration Build()
     {
-        return new ScheduleConfiguration(
+        return new SchedulerConfiguration(
             _enabled,
             _type,
             _executionDateTimeLocal,
@@ -106,7 +128,8 @@ public sealed class ScheduleConfigurationBuilder
             _locale,
             _firstDayOfWeek,
             _dailyFrequency,
-            _weekly
+            _weekly,
+            _monthly
         );
     }
 

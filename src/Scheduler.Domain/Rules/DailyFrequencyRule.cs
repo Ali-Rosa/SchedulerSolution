@@ -33,9 +33,9 @@ public static class DailyFrequencyRule
 
                 current = schedule.IntervalUnit switch
                 {
-                    TimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
-                    TimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
-                    TimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
+                    SchedulerTimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
+                    SchedulerTimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
+                    SchedulerTimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
                     _ => end.AddTicks(1)
                 };
             }

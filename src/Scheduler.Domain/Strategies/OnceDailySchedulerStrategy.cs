@@ -2,11 +2,11 @@
 
 namespace Scheduler.Domain.Strategies;
 
-public sealed class OnceDailyScheduleStrategy : IScheduleStrategy
+public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
 {
-    public ScheduleStrategyKey Key => new(ScheduleType.Once, OccursType.Daily);
+    public SchedulerStrategyKey Key => new(SchedulerType.Once, SchedulerOccursType.Daily);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
         var candidate = currentDateUtc;
 

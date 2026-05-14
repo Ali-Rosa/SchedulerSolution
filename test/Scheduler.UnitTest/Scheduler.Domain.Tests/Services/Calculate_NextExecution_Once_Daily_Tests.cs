@@ -451,7 +451,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var config = ScheduleConfigurationBuilder.OnceDaily()
             .With_Locale("en-US")
             .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act

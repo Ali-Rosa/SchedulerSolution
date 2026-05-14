@@ -17,7 +17,7 @@ public static class CultureRule
         return !string.IsNullOrWhiteSpace(locale) && ValidCultureNames.Contains(locale);
     }
 
-    public static DayOfWeek GetFirstDayOfWeek(ScheduleConfiguration config)
+    public static DayOfWeek GetFirstDayOfWeek(SchedulerConfiguration config)
     {
         // If the user sets a day, it will be used.
         if (config.FirstDayOfWeek.HasValue) return config.FirstDayOfWeek.Value;

@@ -5,7 +5,7 @@ namespace Scheduler.Domain.Rules;
 
 public static class DescriptionRule
 {
-    public static string BuildExecutionDescription(string prefix, DateTimeOffset nextExecution, ScheduleConfiguration config, TimeZoneInfo timeZone, CultureInfo culture)
+    public static string BuildExecutionDescription(string prefix, DateTimeOffset nextExecution, SchedulerConfiguration config, TimeZoneInfo timeZone, CultureInfo culture)
     {
         var local = TimeZoneInfo.ConvertTime(nextExecution, timeZone);
         var desc = prefix;

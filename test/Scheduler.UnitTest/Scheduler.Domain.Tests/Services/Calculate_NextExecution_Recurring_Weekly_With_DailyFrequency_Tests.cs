@@ -28,7 +28,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday)
-            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -55,7 +55,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(2)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Friday)
-            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .With_FirstDayOfWeek(DayOfWeek.Monday)
             .Build();
 
@@ -76,7 +76,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
     {
         var frequencyAmbigua = new ScheduleDailyFrequency(
             OccursOnceEnable: true, OnceTime: new TimeOnly(15, 0),
-            OccursEveryEnable: true, IntervalUnit: TimeIntervalUnit.Hours, FrequencyInterval: 2,
+            OccursEveryEnable: true, IntervalUnit: SchedulerTimeIntervalUnit.Hours, FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0), EndTime: new TimeOnly(8, 0)
         );
 
@@ -117,7 +117,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
     [Fact]
     public void Should_Handle_Null_DaysOfWeek_Safely()
     {
-        var frequencyNula = new ScheduleWeekly(DaysOfWeek: null!);
+        var frequencyNula = new SchedulerWeekly(DaysOfWeek: null!);
         var config = ScheduleConfigurationBuilder.RecurringWeekly().With_Locale("en-US").Build();
         var configConError = config with { Weekly = frequencyNula };
 

@@ -29,7 +29,7 @@ public class DailyFrequencyRuleTests
             OccursOnceEnable: false,
             OnceTime: default,
             OccursEveryEnable: true,
-            IntervalUnit: TimeIntervalUnit.Hours,
+            IntervalUnit: SchedulerTimeIntervalUnit.Hours,
             FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0),
             EndTime: new TimeOnly(8, 0)
@@ -72,7 +72,7 @@ public class DailyFrequencyRuleTests
     {
         // Arrange: 4 AM to 8 AM every 3 hours -> 4 AM, 7 AM. (Leaving at 10 AM)
         var day = new DateOnly(2020, 1, 1);
-        var schedule = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Hours, 3, new TimeOnly(4, 0), new TimeOnly(8, 0));
+        var schedule = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Hours, 3, new TimeOnly(4, 0), new TimeOnly(8, 0));
 
         // Act
         var executions = DailyFrequencyRule.GetExecutionsForDay(day, schedule, TimeZoneInfo.Utc).ToList();
@@ -87,7 +87,7 @@ public class DailyFrequencyRuleTests
     {
         // Arrange: 4:00 AM in Central European Time (CET)
         var day = new DateOnly(2020, 1, 1);
-        var schedule = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(4, 0));
+        var schedule = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(4, 0));
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
 
         // Act
@@ -103,8 +103,8 @@ public class DailyFrequencyRuleTests
     {
         // Arrange
         var day = new DateOnly(2020, 1, 1);
-        var scheduleMin = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Minutes, 15, new TimeOnly(8, 0), new TimeOnly(8, 30));
-        var scheduleSec = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Seconds, 30, new TimeOnly(12, 0, 0), new TimeOnly(12, 0, 30));
+        var scheduleMin = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Minutes, 15, new TimeOnly(8, 0), new TimeOnly(8, 30));
+        var scheduleSec = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Seconds, 30, new TimeOnly(12, 0, 0), new TimeOnly(12, 0, 30));
 
         // Act
         var resMin = DailyFrequencyRule.GetExecutionsForDay(day, scheduleMin, TimeZoneInfo.Utc).ToList();
@@ -121,7 +121,7 @@ public class DailyFrequencyRuleTests
     {
         // Arrange: Start time after end time
         var day = new DateOnly(2020, 1, 1);
-        var schedule = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Hours, 1, new TimeOnly(22, 0), new TimeOnly(8, 0));
+        var schedule = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(22, 0), new TimeOnly(8, 0));
 
         // Act
         var executions = DailyFrequencyRule.GetExecutionsForDay(day, schedule, TimeZoneInfo.Utc);
@@ -135,7 +135,7 @@ public class DailyFrequencyRuleTests
     {
         // Arrange: March 31, 2024 in Europe (spring forward from 02:00 to 03:00)
         var day = new DateOnly(2024, 3, 31);
-        var schedule = new ScheduleDailyFrequency(false, default, true, TimeIntervalUnit.Hours, 1, new TimeOnly(1, 30), new TimeOnly(3, 30));
+        var schedule = new ScheduleDailyFrequency(false, default, true, SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(1, 30), new TimeOnly(3, 30));
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
 
         // Act

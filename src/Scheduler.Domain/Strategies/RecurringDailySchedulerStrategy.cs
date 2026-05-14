@@ -3,11 +3,11 @@ using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Strategies;
 
-public sealed class RecurringDailyScheduleStrategy : IScheduleStrategy
+public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
 {
-    public ScheduleStrategyKey Key => new(ScheduleType.Recurring, OccursType.Daily);
+    public SchedulerStrategyKey Key => new(SchedulerType.Recurring, SchedulerOccursType.Daily);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, ScheduleConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
         if (!CultureRule.IsValid(config.Locale!))
             return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");

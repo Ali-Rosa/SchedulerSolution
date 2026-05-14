@@ -1,6 +1,6 @@
 ﻿namespace Scheduler.Domain.Models;
 
-public enum TimeIntervalUnit
+public enum SchedulerTimeIntervalUnit
 {
     Hours,
     Minutes,

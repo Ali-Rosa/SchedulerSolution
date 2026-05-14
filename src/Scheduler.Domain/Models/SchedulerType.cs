@@ -1,6 +1,6 @@
 namespace Scheduler.Domain.Models;
 
-public enum ScheduleType
+public enum SchedulerType
 {
     Once,
     Recurring 

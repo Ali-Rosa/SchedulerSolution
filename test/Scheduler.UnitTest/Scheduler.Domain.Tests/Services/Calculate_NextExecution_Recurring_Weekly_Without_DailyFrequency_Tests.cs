@@ -278,7 +278,7 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
     {
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
-            .With_RecursEvery(60) // 60 weeks > 1 year
+            .With_RecursEvery(300) // 300 weeks > 5 years (My limit is 1826 days hardcoded)
             .With_WeeklyDays(DayOfWeek.Monday)
             .Build();
 
@@ -290,7 +290,7 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
     [Fact]
     public void Should_Reject_Null_Weekly_Days_In_Object()
     {
-        var frequencyNula = new ScheduleWeekly(DaysOfWeek: null!);
+        var frequencyNula = new SchedulerWeekly(DaysOfWeek: null!);
         var config = ScheduleConfigurationBuilder.RecurringWeekly().With_Locale("en-US").Build();
         var configConError = config with { Weekly = frequencyNula };
 
