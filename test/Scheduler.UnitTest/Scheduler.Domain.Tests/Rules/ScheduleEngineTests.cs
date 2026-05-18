@@ -11,7 +11,7 @@ public class ScheduleEngineTests
     #region Iteration Limit Tests
 
     [Fact]
-    public void Should_Stop_At_MaxOccurrences_Even_If_Iterations_Available()
+    public void ScheduleEngine_Should_Stop_At_MaxOccurrences_Even_If_Iterations_Available()
     {
         // Arrange: Request 5 occurrences, iterate daily for 366 days
         var currentDate = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
@@ -36,7 +36,7 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void Should_Stop_At_MaxSearchDays_Limit()
+    public void ScheduleEngine_Should_Stop_At_MaxSearchDays_Limit()
     {
         // Arrange: Asked for 500 occurrences, but we will limit the search to only 10 days.
         var currentDate = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
@@ -68,7 +68,7 @@ public class ScheduleEngineTests
     #region Date Limit Enforcement
 
     [Fact]
-    public void Should_Respect_LimitsStartDateLocal()
+    public void ScheduleEngine_Should_Respect_LimitsStartDateLocal()
     {
         // Arrange: Start limit is in the future
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -96,7 +96,7 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void Should_Respect_LimitsEndDateLocal()
+    public void ScheduleEngine_Should_Respect_LimitsEndDateLocal()
     {
         // Arrange: End limit in the near future
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -126,7 +126,7 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void Should_Respect_Both_StartAndEnd_Limits()
+    public void ScheduleEngine_Should_Respect_Both_StartAndEnd_Limits()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -163,7 +163,7 @@ public class ScheduleEngineTests
     #region Logic Validation
 
     [Fact]
-    public void IsDayValidLogic_False_Should_Skip_Days()
+    public void ScheduleEngine_IsDayValidLogic_False_Should_Skip_Days()
     {
         // Arrange: Only allow even-numbered days
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -191,7 +191,7 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void Results_Should_Be_Sorted_Chronologically()
+    public void ScheduleEngine_Results_Should_Be_Sorted_Chronologically()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -224,7 +224,7 @@ public class ScheduleEngineTests
     #region Description Generation
 
     [Fact]
-    public void BuildDescriptionLogic_Should_Be_Called_With_First_Execution()
+    public void ScheduleEngine_BuildDescriptionLogic_Should_Be_Called_With_First_Execution()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
@@ -259,7 +259,7 @@ public class ScheduleEngineTests
     #region Edge Cases
 
     [Fact]
-    public void CurrentDate_Greater_Than_StartLimit_Should_Use_CurrentDate()
+    public void ScheduleEngine_CurrentDate_Greater_Than_StartLimit_Should_Use_CurrentDate()
     {
         // Arrange: Current date is after the start limit
         var currentDate = new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero);
@@ -287,7 +287,7 @@ public class ScheduleEngineTests
     }
 
     [Fact]
-    public void CurrentDate_Less_Than_StartLimit_Should_Use_StartLimit()
+    public void ScheduleEngine_CurrentDate_Less_Than_StartLimit_Should_Use_StartLimit()
     {
         // Arrange: Current date is before the start limit
         var currentDate = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);

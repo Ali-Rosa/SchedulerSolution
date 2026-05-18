@@ -3,7 +3,6 @@ using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
-using Xunit.Sdk;
 
 namespace Scheduler.Domain.Tests.Validators;
 
@@ -14,7 +13,7 @@ public class ScheduleConfigurationValidatorTests
     public ScheduleConfigurationValidatorTests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
-    public void Negative_RecursEvery_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Negative_RecursEvery_Should_Be_Rejected()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
@@ -32,7 +31,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Undefined_ScheduleType_Should_Return_Definition_Error()
+    public void ScheduleConfigurationValidator_Undefined_ScheduleType_Should_Return_Definition_Error()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
@@ -48,7 +47,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Disabled_Configuration_Should_Return_Disabled_Message()
+    public void ScheduleConfigurationValidator_Disabled_Configuration_Should_Return_Disabled_Message()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
@@ -64,7 +63,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Undefined_OccursType_Should_Return_Definition_Error()
+    public void ScheduleConfigurationValidator_Undefined_OccursType_Should_Return_Definition_Error()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
@@ -83,7 +82,7 @@ public class ScheduleConfigurationValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Should_Fail_When_Locale_Is_Null_Or_Empty(string? invalidLocale)
+    public void ScheduleConfigurationValidator_Should_Fail_When_Locale_Is_Null_Or_Empty(string? invalidLocale)
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.RecurringDaily().Build() with { Locale = invalidLocale };
@@ -99,7 +98,7 @@ public class ScheduleConfigurationValidatorTests
     #region Validations
 
     [Fact]
-    public void Recurring_Schedule_With_Zero_RecursEvery_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Recurring_Schedule_With_Zero_RecursEvery_Should_Be_Rejected()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.RecurringDaily()
@@ -116,7 +115,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Weekly_Recurring_Without_DaysOfWeek_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Weekly_Recurring_Without_DaysOfWeek_Should_Be_Rejected()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
@@ -132,7 +131,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Weekly_Recurring_With_Days_Should_Succeed_Validation()
+    public void ScheduleConfigurationValidator_Weekly_Recurring_With_Days_Should_Succeed_Validation()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
@@ -148,7 +147,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Once_Schedule_ExecutionDateTime_Before_StartLimit_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Once_Schedule_ExecutionDateTime_Before_StartLimit_Should_Be_Rejected()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
@@ -168,7 +167,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Once_Schedule_ExecutionDateTime_After_EndLimit_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Once_Schedule_ExecutionDateTime_After_EndLimit_Should_Be_Rejected()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero);
@@ -188,7 +187,7 @@ public class ScheduleConfigurationValidatorTests
     }
 
     [Fact]
-    public void Once_Schedule_ExecutionDateTime_Within_Limits_Should_Succeed()
+    public void ScheduleConfigurationValidator_Once_Schedule_ExecutionDateTime_Within_Limits_Should_Succeed()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 10, 0, 0, TimeSpan.Zero);
@@ -202,14 +201,14 @@ public class ScheduleConfigurationValidatorTests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
-    public void Undefined_IntervalUnit_In_DailyFrequency_Should_Be_Rejected()
+    public void ScheduleConfigurationValidator_Undefined_IntervalUnit_In_DailyFrequency_Should_Be_Rejected()
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
@@ -228,7 +227,7 @@ public class ScheduleConfigurationValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-5)]
-    public void Zero_Or_Negative_FrequencyInterval_Should_Be_Rejected(int invalidInterval)
+    public void ScheduleConfigurationValidator_Zero_Or_Negative_FrequencyInterval_Should_Be_Rejected(int invalidInterval)
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")

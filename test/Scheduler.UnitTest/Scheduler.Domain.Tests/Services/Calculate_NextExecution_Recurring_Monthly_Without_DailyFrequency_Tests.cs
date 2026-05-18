@@ -12,6 +12,8 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
 
     public Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
+    #region Validation Tests
+
     [Fact]
     public void CalculateNextExecution_RecurringMonthly_MissingConfiguration_ReturnsErrorMessage()
     {
@@ -27,7 +29,60 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
     }
 
     [Fact]
-    public void CalculateNextExecution_RecurringMonthly_SpecificDay_InheritsAnchorTime()
+    public void CalculateNextExecution_RecurringMonthly_InvalidCulture_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly().With_Locale("invalid-culture").Build();
+        
+        
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        
+        
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("not supported");
+    }
+
+    [Fact]
+    public void CalculateNextExecution_RecurringMonthly_ZeroRecursEvery_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(0)
+            .Build();
+
+
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("greater than 0");
+    }
+
+    [Fact]
+    public void CalculateNextExecution_RecurringMonthly_NegativeRecursEvery_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(-5)
+            .With_MonthlySpecificDay(10)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("The Every value cannot be negative.");
+    }
+
+    #endregion Validation Tests
+
+    #region Core Logic & Anchor Time (Specific Day)
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_SpecificDay_InheritsAnchorTime()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 2, 14, 30, 0, TimeSpan.Zero);
@@ -50,7 +105,7 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
     }
 
     [Fact]
-    public void CalculateNextExecution_RecurringMonthly_PassedDay_JumpsToNextMonth()
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_PassedDay_JumpsToNextMonth()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 20, 10, 0, 0, TimeSpan.Zero);
@@ -71,7 +126,32 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
     }
 
     [Fact]
-    public void CalculateNextExecution_RecurringMonthly_RelativeDay_ReturnsExpectedDescription()
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_SpecificDay31_DoesNotExecuteInFebruary_JumpsToMarch()
+    {
+        // Arrange: 1 de Febrero 2026. Config: Día 31.
+        var currentDate = new DateTimeOffset(2026, 2, 1, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlySpecificDay(31)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert: Febrero no tiene día 31, así que el motor debe saltar a Marzo.
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Month.ShouldBe(3); // Marzo
+        result.NextExecutionTime.Value.Day.ShouldBe(31);  // Día 31 de Marzo
+    }
+
+    #endregion Core Logic & Anchor Time (Specific Day)
+
+    #region Relative Day Calculations
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_RelativeDay_ReturnsExpectedDescription()
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
@@ -88,9 +168,243 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
         result.Description.ShouldContain("Occurs the last weekend day of every 3 months");
     }
 
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_RelativeDay_Weekday_ReturnsExpectedDescription()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Weekday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldContain("weekday");
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_RelativeDay_Day_ReturnsExpectedDescription()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(2)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Day)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldContain("day");
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_RelativeDay_Daily_ReturnsExpectedDescription()
+    {
+        // Arrange - Coverage for "Day" type in FormatDayType and IsMatchingType
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Third, SchedulerMonthlyRelativeDayType.Day)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldContain("third day of every month");
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_RelativeDay_SpecificDayOfWeek_ReturnsExpectedDescription()
+    {
+        // Arrange - Coverage for specific day of week (e.g., Thursday)
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Fourth, SchedulerMonthlyRelativeDayType.Thursday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Description.ShouldContain("thursday");
+    }
+
+    [Theory]
+    [InlineData(SchedulerMonthlyRelativeOrdinal.First)]
+    [InlineData(SchedulerMonthlyRelativeOrdinal.Second)]
+    [InlineData(SchedulerMonthlyRelativeOrdinal.Third)]
+    [InlineData(SchedulerMonthlyRelativeOrdinal.Fourth)]
+    [InlineData(SchedulerMonthlyRelativeOrdinal.Last)]
+    public void CalculateNextExecution_RecurringMonthly_AllOrdinals_ReturnsValidExecution(SchedulerMonthlyRelativeOrdinal ordinal)
+    {
+        // Arrange - Coverage for all ordinals
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(ordinal, SchedulerMonthlyRelativeDayType.Weekday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.Description.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public void CalculateNextExecution_RecurringMonthly_AllDayTypesDayOfWeekValues_ReturnsExpectedResults()
+    {
+        // Arrange - Coverage for day of week conversion (0-6 mapping)
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Friday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.DayOfWeek.ShouldBe(DayOfWeek.Friday);
+    }
+
+    #endregion Relative Day Calculations
+
+    #region Error Handling & Edge Cases
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_FormatDayType_InvalidEnum_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, (SchedulerMonthlyRelativeDayType)66)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("Not defined relative day type");
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_InvalidRelativeOrdinal_ReturnsError()
+    {
+        // Arrange
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay((SchedulerMonthlyRelativeOrdinal)85, SchedulerMonthlyRelativeDayType.Monday) // 85 no existe en el enum SchedulerMonthlyRelativeOrdinal
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("Not defined relative ordinal");
+    }
+
+    #endregion Error Handling & Edge Cases
+
+    #region Month Interval & Skipping Logic
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_MultipleMonthsInterval_SkipsNonMatchingMonths()
+    {
+        // Arrange - Every 3 months, starting May 1st, looking for June 10th (should skip to August)
+        var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(3)
+            .With_MonthlySpecificDay(10)
+            .With_Limits_StartDateLocal(currentDate)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Month.ShouldBe(5); // First execution in May (3 months from start)
+        result.NextExecutionTime.Value.Day.ShouldBe(10);
+    }
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_NoMatchingDaysInMonth_SkipsToNextValidMonth()
+    {
+        // Arrange - Looking for 5th Monday when a month doesn't have 5 Mondays
+        var currentDate = new DateTimeOffset(2026, 4, 1, 10, 0, 0, TimeSpan.Zero);
+        var config = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Monday)
+            .Build();
+
+        // Act
+        var result = _service.CalculateNextExecution(currentDate, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        // Should find a month with 5 Mondays
+        result.NextExecutionTime.Value.DayOfWeek.ShouldBe(DayOfWeek.Monday);
+    }
+
+    #endregion Month Interval & Skipping Logic
+
+    #region Description Formatting
+
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_BuildMonthlyDescription_ShouldHandleBothBranches()
+    {
+        // 1. Prueba "Every month" (recursEvery == 1) y "Specific Day"
+        var configSpecific = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(1)
+            .With_MonthlySpecificDay(10)
+            .Build();
+
+        // 2. Prueba "Every X months" (recursEvery > 1) y "Relative Day"
+        var configRelative = ScheduleConfigurationBuilder.RecurringMonthly()
+            .With_Locale("en-US")
+            .With_RecursEvery(2)
+            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Monday)
+            .Build();
+
+        var resultSpecific = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configSpecific);
+        var resultRelative = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configRelative);
+
+        resultSpecific.Description.ShouldContain("every month");
+        resultRelative.Description.ShouldContain("every 2 months");
+    }
+
+    #endregion Description Formatting
+
+    #region Daily Frequency Integration
+
     [Theory]
     [InlineData(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Monday, "8,10")]
-    public void CalculateNextExecution_RecurringMonthly_WithDailyFrequencySequence_ReturnsExpectedHours(
+    public void Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_WithDailyFrequencySequence_ReturnsExpectedHours(
         SchedulerMonthlyRelativeOrdinal ordinal,
         SchedulerMonthlyRelativeDayType dayType,
         string expectedHoursCsv)
@@ -123,69 +437,6 @@ public class Calculate_NextExecution_Recurring_Monthly_Without_DailyFrequency_Te
         }
     }
 
-    [Fact]
-    public void CalculateNextExecution_RecurringMonthly_InvalidCulture_ReturnsError()
-    {
-        // Arrange
-        var config = ScheduleConfigurationBuilder.RecurringMonthly().With_Locale("invalid-culture").Build();
-        
-        
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-        
-        
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldContain("not supported");
-    }
-
-    //[Fact]
-    //public void CalculateNextExecution_RecurringMonthly_ZeroRecursEvery_ReturnsError()
-    //{
-    //    // Arrange
-    //    var config = ScheduleConfigurationBuilder.RecurringMonthly().With_Locale("en-US").With_RecursEvery(0).Build();
-        
-        
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-        
-        
-    //    result.IsSuccess.ShouldBeFalse();
-    //    result.ErrorMessage.ShouldContain("greater than 0");
-    //}
-
-    //[Fact]
-    //public void BuildMonthlyDescription_ShouldHandleBothBranches()
-    //{
-    //    // 1. Prueba "Every month" (recursEvery == 1) y "Specific Day"
-    //    var configSpecific = ScheduleConfigurationBuilder.RecurringMonthly()
-    //        .With_RecursEvery(1)
-    //        .With_MonthlySpecificDay(10)
-    //        .Build();
-
-    //    // 2. Prueba "Every X months" (recursEvery > 1) y "Relative Day"
-    //    var configRelative = ScheduleConfigurationBuilder.RecurringMonthly()
-    //        .With_RecursEvery(2)
-    //        .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Monday)
-    //        .Build();
-
-    //    var resultSpecific = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configSpecific);
-    //    var resultRelative = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configRelative);
-
-    //    resultSpecific.Description.ShouldContain("every month");
-    //    resultRelative.Description.ShouldContain("every 2 months");
-    //}
-
-    //[Fact]
-    //public void FormatDayType_InvalidEnum_ReturnsDefaultString()
-    //{
-    //    // Forzamos un valor que no existe en el Enum (asumiendo que SchedulerMonthlyRelativeDayType tiene valores 0-12)
-    //    var config = ScheduleConfigurationBuilder.RecurringMonthly()
-    //        .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, (SchedulerMonthlyRelativeDayType)99)
-    //        .Build();
-
-    //    var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-    //    // Esto entrará en el 'default' del switch, cubriendo esa línea roja
-    //    result.IsSuccess.ShouldBeTrue();
-    //    result.Description.ShouldContain("99"); // El ToString() de 99 devolverá "99"
-    //}
+    #endregion Daily Frequency Integration
 
 }

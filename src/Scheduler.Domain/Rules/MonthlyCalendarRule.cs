@@ -21,8 +21,11 @@ public static class MonthlyCalendarRule
 
             // Protection: If the requested day is 31 in February, adjust it to 28/29 (End of month)
             // This possibility must be eradicated at a higher stage, possibly in validations; NO OLVIDAR
+            //if (targetDay > daysInCurrentMonth)
+            //    targetDay = daysInCurrentMonth;
+
             if (targetDay > daysInCurrentMonth)
-                targetDay = daysInCurrentMonth;
+                return false; // Salimos, no hay ejecución este mes
 
             return currentDay.Day == targetDay;
         }
@@ -31,6 +34,7 @@ public static class MonthlyCalendarRule
         var calculatedRelativeDate = GetRelativeDate(currentDay.Year, currentDay.Month, monthlyConfig.RelativeOrdinal!.Value, monthlyConfig.RelativeDayType!.Value);
 
         return calculatedRelativeDate.HasValue && currentDay == calculatedRelativeDate.Value;
+
     }
 
     private static DateOnly? GetRelativeDate(int year, int month, SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType)
@@ -61,6 +65,7 @@ public static class MonthlyCalendarRule
             return matchingDays[index];
 
         return null; 
+
     }
 
     private static bool IsMatchingType(DateOnly date, SchedulerMonthlyRelativeDayType type)

@@ -13,7 +13,7 @@ public class Calculate_NextExecution_Generals_Validations_Tests
     public Calculate_NextExecution_Generals_Validations_Tests() => _service = SchedulerServiceFactory.CreateDefault();
 
     [Fact]
-    public void CalculateNextExecution_WithNullConfig_ReturnsError()
+    public void Calculate_NextExecution_Generals_WithNullConfig_ReturnsError()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
@@ -28,7 +28,7 @@ public class Calculate_NextExecution_Generals_Validations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_WhenStrategyCombinationIsNotRegistered_ReturnsUnsupportedCombinationError()
+    public void Calculate_NextExecution_Generals_WhenStrategyCombinationIsNotRegistered_ReturnsUnsupportedCombinationError()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
@@ -52,7 +52,7 @@ public class Calculate_NextExecution_Generals_Validations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_WithInvalidTimeZone_ReturnsError()
+    public void Calculate_NextExecution_Generals_WithInvalidTimeZone_ReturnsError()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);

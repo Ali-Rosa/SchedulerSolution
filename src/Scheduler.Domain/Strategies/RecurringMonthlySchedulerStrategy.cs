@@ -10,11 +10,20 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
 
+        if (config.RecursEvery <= 0)
+            return new SchedulerResponse("The Every value must be greater than 0.");
+
         if (config.Monthly == null)
             return new SchedulerResponse("Monthly configuration is required for Monthly recurring schedules.");
 
-        if (config.RecursEvery <= 0)
-            return new SchedulerResponse("The Every value must be greater than 0.");
+        if (!config.Monthly.IsSpecificDay)
+        {
+            if (config.Monthly.RelativeDayType.HasValue && !Enum.IsDefined(config.Monthly.RelativeDayType.Value))
+                return new SchedulerResponse($"Not defined relative day type: {config.Monthly.RelativeDayType}.");
+
+            if (config.Monthly.RelativeOrdinal.HasValue && !Enum.IsDefined(config.Monthly.RelativeOrdinal.Value))
+                return new SchedulerResponse($"Not defined relative ordinal: {config.Monthly.RelativeOrdinal}.");
+        }
 
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 

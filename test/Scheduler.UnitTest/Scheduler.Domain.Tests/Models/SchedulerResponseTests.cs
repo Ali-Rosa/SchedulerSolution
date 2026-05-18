@@ -6,7 +6,7 @@ namespace Scheduler.Domain.Tests.Models;
 public class SchedulerResponseTests
 {
     [Fact]
-    public void Unsorted_Executions_Should_Be_Sorted_Chronologically()
+    public void SchedulerResponse_Unsorted_Executions_Should_Be_Sorted_Chronologically()
     {
         // Arrange
         var earliestDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero);
@@ -25,7 +25,7 @@ public class SchedulerResponseTests
     }
 
     [Fact]
-    public void Error_Constructor_Should_Initialize_Failure_State()
+    public void SchedulerResponse_Motive_The_Constructor_Should_The_Input_Error_Message()
     {
         // Arrange
         var expectedMessage = "The builder interprets the single message sent as an error message.";
@@ -41,7 +41,7 @@ public class SchedulerResponseTests
     }
 
     [Fact]
-    public void Constructor_Should_Be_NullSafe_When_Given_Null_Executions()
+    public void SchedulerResponse_Constructor_Should_Be_NullSafe_When_Given_Null_Executions()
     {
         // Act
         var response = new SchedulerResponse(executions: null!, description: "Null test");
@@ -54,12 +54,13 @@ public class SchedulerResponseTests
     }
 
     [Fact]
-    public void Default_State_Should_Be_Safe_And_Null()
+    public void SchedulerResponse_Default_State_Should_Be_Safe_And_Null()
     {
         // Act
         SchedulerResponse response = default;
 
         // Assert
+        response.IsSuccess.ShouldBeFalse();
         response.NextExecutionTime.ShouldBeNull();
         response.NextExecutionTimes.ShouldBeNull();
     }

@@ -7,7 +7,7 @@ namespace Scheduler.Domain.Tests.Rules;
 public class MonthlyCalendarRuleTests
 {
     [Fact]
-    public void Specific_Day_Should_Match_Correctly()
+    public void MonthlyCalendarRule_Specific_Day_Should_Match_Correctly()
     {
         // Arrange
         var startDate = new DateOnly(2026, 1, 1);
@@ -22,18 +22,18 @@ public class MonthlyCalendarRuleTests
     }
 
     [Fact]
-    public void Specific_Day_Should_Cap_At_End_Of_Month()
+    public void MonthlyCalendarRule_IsValidDay_RequestingDay31InFebruary_ShouldReturnFalse()
     {
-        // Arrange: We request the 31st, but February (leap year) only has 29.
+        // Arrange: Pedimos el día 31 en Febrero (bisiesto o no, el 31 no existe).
         var startDate = new DateOnly(2024, 1, 1);
-        var currentDay = new DateOnly(2024, 2, 29); // February 29th
+        var currentDay = new DateOnly(2024, 2, 29); // Febrero bisiesto
         var config = new SchedulerMonthly(true, 31, null, null);
 
         // Act
         var result = MonthlyCalendarRule.IsValidDay(currentDay, startDate, 1, config);
 
         // Assert
-        result.ShouldBeTrue("The 31st day in February should automatically adjust to the last valid day of the month (29).");
+        result.ShouldBeFalse("El día 31 no existe en Febrero, por lo tanto no debe haber ejecución (comportamiento estricto).");
     }
 
     [Theory]
@@ -42,7 +42,7 @@ public class MonthlyCalendarRuleTests
     [InlineData(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Monday, 11)] // Second Monday is 11
     [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Day, 31)] // Last day of the month
     [InlineData(SchedulerMonthlyRelativeOrdinal.Third, SchedulerMonthlyRelativeDayType.WeekendDay, 9)] // Third weekend day (Sun 3, Sat 8, Sun 9) -> Note: In May 2026 (Sat 2, Sun 3, Sat 9) -> The third is Saturday 9.
-    public void Relative_Days_Should_Be_Calculated_Correctly(SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType, int expectedDay)
+    public void MonthlyCalendarRule_Relative_Days_Should_Be_Calculated_Correctly(SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType, int expectedDay)
     {
         // Arrange
         var startDate = new DateOnly(2026, 5, 1);
@@ -57,7 +57,7 @@ public class MonthlyCalendarRuleTests
     }
 
     [Fact]
-    public void Non_Matching_Month_Interval_Should_Be_Invalid()
+    public void MonthlyCalendarRule_Non_Matching_Month_Interval_Should_Be_Invalid()
     {
         // Arrange
         var startDate = new DateOnly(2026, 1, 1);
@@ -80,10 +80,12 @@ public class MonthlyCalendarRuleTests
     [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Monday, 2026, 5, 25)]
     [InlineData(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Weekday, 2026, 5, 1)] // First weekday is 1
     [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.WeekendDay, 2026, 5, 31)] // Sunday 31
-    public void Relative_Days_Complex_Combinations(
-        SchedulerMonthlyRelativeOrdinal ordinal,
-        SchedulerMonthlyRelativeDayType dayType,
-        int year, int month, int expectedDay)
+    public void MonthlyCalendarRule_Relative_Days_Complex_Combinations(
+        SchedulerMonthlyRelativeOrdinal ordinal
+        , SchedulerMonthlyRelativeDayType dayType
+        , int year
+        , int month
+        , int expectedDay)
     {
         // Arrange
         var startDate = new DateOnly(year, month, 1);

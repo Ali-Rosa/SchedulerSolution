@@ -15,7 +15,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Precedence & Exclusivity Logic
 
     [Fact]
-    public void Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
+    public void Calculate_NextExecution_Recurring_Daily_Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
     {
         // Arrange: Conflict scenario (both modes on True). 'Eleven' must win.
         var frequencyAmbigua = new ScheduleDailyFrequency(
@@ -49,7 +49,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Mode: Occurs Once
 
     [Fact]
-    public void OccursOnce_Should_Return_Today_If_Time_Is_In_The_Future()
+    public void Calculate_NextExecution_Recurring_Daily_OccursOnce_Should_Return_Today_If_Time_Is_In_The_Future()
     {
         // Arrange: 10 AM now, execution at 3 PM today.
         var currentDate = new DateTimeOffset(2026, 5, 6, 10, 0, 0, TimeSpan.Zero);
@@ -69,7 +69,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     }
 
     [Fact]
-    public void OccursOnce_Should_Jump_To_Next_Valid_Day_If_Time_Already_Passed()
+    public void Calculate_NextExecution_Recurring_Daily_OccursOnce_Should_Jump_To_Next_Valid_Day_If_Time_Already_Passed()
     {
         // Arrange: 10 PM now, execution was at 8 AM. Should be tomorrow.
         var currentDate = new DateTimeOffset(2026, 5, 6, 22, 0, 0, TimeSpan.Zero);
@@ -93,7 +93,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Mode: Occurs Every (Intervals)
 
     [Fact]
-    public void OccursEvery_Should_Find_Next_Interval_Within_The_Same_Day()
+    public void Calculate_NextExecution_Recurring_Daily_OccursEvery_Should_Find_Next_Interval_Within_The_Same_Day()
     {
         // Arrange: 5 AM now. Hours: 4, 6, 8 AM. Next: 6 AM.
         var currentDate = new DateTimeOffset(2026, 5, 6, 5, 0, 0, TimeSpan.Zero);
@@ -113,7 +113,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     }
 
     [Fact]
-    public void OccursEvery_Should_Jump_To_Next_Pattern_Day_If_Day_Range_Is_Exhausted()
+    public void Calculate_NextExecution_Recurring_Daily_OccursEvery_Should_Jump_To_Next_Pattern_Day_If_Day_Range_Is_Exhausted()
     {
         // Arrange: 10 PM now. Pattern every 3 days. Hours 4-8 AM. Next: Day 09 at 4 AM.
         var currentDate = new DateTimeOffset(2026, 5, 6, 22, 0, 0, TimeSpan.Zero);
@@ -135,7 +135,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     [Theory]
     [InlineData(SchedulerTimeIntervalUnit.Minutes, 15, 12, 15)]
     [InlineData(SchedulerTimeIntervalUnit.Seconds, 20, 12, 0, 20)]
-    public void OccursEvery_Should_Handle_Small_Time_Units_Correctly(SchedulerTimeIntervalUnit unit, int interval, int h, int m, int s = 0)
+    public void Calculate_NextExecution_Recurring_Daily_OccursEvery_Should_Handle_Small_Time_Units_Correctly(SchedulerTimeIntervalUnit unit, int interval, int h, int m, int s = 0)
     {
         // Arrange: 12:00:00 exact.
         var currentDate = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero);
@@ -160,7 +160,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Edge Cases & Transitions
 
     [Fact]
-    public void Start_Time_Exactly_Now_Should_Find_The_Next_Available_Interval()
+    public void Calculate_NextExecution_Recurring_Daily_Start_Time_Exactly_Now_Should_Find_The_Next_Available_Interval()
     {
         // Scenario: If it's exactly 04:00:00, the filter 'e > now' should jump to 06:00.
         var currentDate = new DateTimeOffset(2026, 5, 6, 4, 0, 0, TimeSpan.Zero);
@@ -183,7 +183,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Localization & Description Verification
 
     [Fact]
-    public void Description_Should_Include_Detailed_Frequency_Information()
+    public void Calculate_NextExecution_Recurring_Daily_Description_Should_Include_Detailed_Frequency_Information()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero);

@@ -7,7 +7,7 @@ namespace Scheduler.Domain.Tests.Rules;
 public class DailyFrequencyRuleTests
 {
     [Fact]
-    public void Should_Return_Empty_If_No_Execution_Mode_Is_Enabled()
+    public void DailyFrequencyRule_Should_Return_Empty_If_No_Execution_Mode_Is_Enabled()
     {
         // Arrange
         var day = new DateOnly(2026, 5, 1);
@@ -21,7 +21,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Hourly_Intervals_Should_Be_Generated_Correctly_Within_Range()
+    public void DailyFrequencyRule_Hourly_Intervals_Should_Be_Generated_Correctly_Within_Range()
     {
         // Arrange
         var day = new DateOnly(2020, 1, 1);
@@ -46,7 +46,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Occurs_Once_Mode_Should_Generate_Exactly_One_Execution()
+    public void DailyFrequencyRule_Occurs_Once_Mode_Should_Generate_Exactly_One_Execution()
     {
         // Arrange
         var day = new DateOnly(2020, 1, 1);
@@ -68,7 +68,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Intervals_Should_Not_Be_Generated_Beyond_End_Time()
+    public void DailyFrequencyRule_Intervals_Should_Not_Be_Generated_Beyond_End_Time()
     {
         // Arrange: 4 AM to 8 AM every 3 hours -> 4 AM, 7 AM. (Leaving at 10 AM)
         var day = new DateOnly(2020, 1, 1);
@@ -83,7 +83,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Local_Times_Should_Be_Correctly_Converted_To_Utc()
+    public void DailyFrequencyRule_Local_Times_Should_Be_Correctly_Converted_To_Utc()
     {
         // Arrange: 4:00 AM in Central European Time (CET)
         var day = new DateOnly(2020, 1, 1);
@@ -99,7 +99,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Minute_And_Second_Intervals_Should_Be_Generated_Correctly()
+    public void DailyFrequencyRule_Minute_And_Second_Intervals_Should_Be_Generated_Correctly()
     {
         // Arrange
         var day = new DateOnly(2020, 1, 1);
@@ -117,7 +117,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Invalid_Time_Ranges_Should_Return_Empty_List()
+    public void DailyFrequencyRule_Invalid_Time_Ranges_Should_Return_Empty_List()
     {
         // Arrange: Start time after end time
         var day = new DateOnly(2020, 1, 1);
@@ -131,7 +131,7 @@ public class DailyFrequencyRuleTests
     }
 
     [Fact]
-    public void Daylight_Saving_Time_Spring_Forward_Gap_Should_Be_Skipped()
+    public void DailyFrequencyRule_Daylight_Saving_Time_Spring_Forward_Gap_Should_Be_Skipped()
     {
         // Arrange: March 31, 2024 in Europe (spring forward from 02:00 to 03:00)
         var day = new DateOnly(2024, 3, 31);

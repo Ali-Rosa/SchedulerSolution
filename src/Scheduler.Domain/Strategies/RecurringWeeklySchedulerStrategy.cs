@@ -10,13 +10,16 @@ public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
 
-        if (config.Weekly!.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
+        if (config.RecursEvery <= 0)
+            return new SchedulerResponse("The Every value must be greater than 0.");
+
+        if (config.Weekly is null)
+            return new SchedulerResponse("Weekly configuration is required for Weekly recurring schedules.");
+
+        if (config.Weekly.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
         {
             return new SchedulerResponse("Weekly configuration and at least one day are required.");
         }
-
-        if (config.RecursEvery <= 0)
-            return new SchedulerResponse("The Every value must be greater than 0.");
 
         var firstDayOfWeek = CultureRule.GetFirstDayOfWeek(config);
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);

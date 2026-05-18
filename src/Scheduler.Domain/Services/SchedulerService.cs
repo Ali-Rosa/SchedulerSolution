@@ -20,6 +20,7 @@ public class SchedulerService
             return new SchedulerResponse("Unsupported schedule and occurs combination.");
 
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZoneId);
+
         return strategy.CalculateNextExecution(currentDateUtc, config, timeZone);
 
     }

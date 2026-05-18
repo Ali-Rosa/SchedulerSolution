@@ -14,7 +14,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region Basic & Default Scenarios
 
     [Fact]
-    public void CurrentDate_Should_Be_Used_When_No_Execution_Time_Provided()
+    public void Calculate_NextExecution_Once_Daily_CurrentDate_Should_Be_Used_When_No_Execution_Time_Provided()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.OnceDaily().With_Locale("en-US").Build();
@@ -27,7 +27,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Exact_CurrentDate_Should_Be_Valid_Execution_Time()
+    public void Calculate_NextExecution_Once_Daily_Exact_CurrentDate_Should_Be_Valid_Execution_Time()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.OnceDaily()
@@ -42,7 +42,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void ExecutionDateTimeLocal_Should_Be_Used_As_NextExecution()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTimeLocal_Should_Be_Used_As_NextExecution()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -64,7 +64,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Without_ExecutionDateTimeLocal_Should_Use_CurrentDate()
+    public void Calculate_NextExecution_Once_Daily_Without_ExecutionDateTimeLocal_Should_Use_CurrentDate()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
@@ -89,7 +89,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
 
     [Theory]
     [InlineData(1, "DateTime cannot be less than CurrentDate")] // 1 hour ago
-    public void Past_Execution_Dates_Should_Return_Specific_Error(int hoursBack, string expectedError)
+    public void Calculate_NextExecution_Once_Daily_Past_Execution_Dates_Should_Return_Specific_Error(int hoursBack, string expectedError)
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
@@ -111,7 +111,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     [Theory]
     [InlineData(10, 5)]  // Execution in 10 days, Limit in 5 (Exceeds end)
     [InlineData(2, 5)]  // Execution in 2 days, Start Limit in 5 days (Fails for being before start)
-    public void Dates_Outside_Start_Or_End_Limits_Should_Fail(int daysToExecution, int daysToLimit)
+    public void Calculate_NextExecution_Once_Daily_Dates_Outside_Start_Or_End_Limits_Should_Fail(int daysToExecution, int daysToLimit)
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
@@ -138,7 +138,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region Date/Time Range Limits
 
     [Fact]
-    public void ExecutionDateTimeLocal_Before_LimitsStartDateLocal_Should_Fail()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTimeLocal_Before_LimitsStartDateLocal_Should_Fail()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
@@ -159,7 +159,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void ExecutionDateTimeLocal_After_LimitsEndDateLocal_Should_Fail()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTimeLocal_After_LimitsEndDateLocal_Should_Fail()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
@@ -180,7 +180,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void ExecutionDateTimeLocal_Within_Valid_Range_Should_Succeed()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTimeLocal_Within_Valid_Range_Should_Succeed()
     {
         // Arrange
         var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
@@ -194,7 +194,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -202,7 +202,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Boundary_Execution_At_StartDate_Should_Succeed()
+    public void Calculate_NextExecution_Once_Daily_Boundary_Execution_At_StartDate_Should_Succeed()
     {
         // Arrange: Execution exactly at the start date boundary
         var startLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -214,7 +214,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -222,7 +222,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Boundary_Execution_At_EndDate_Should_Succeed()
+    public void Calculate_NextExecution_Once_Daily_Boundary_Execution_At_EndDate_Should_Succeed()
     {
         // Arrange: Execution exactly at the end date boundary
         var endLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -234,7 +234,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -246,7 +246,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region TimeZone & Localization
 
     [Fact]
-    public void Response_Should_Correctly_Convert_To_Local_Time()
+    public void Calculate_NextExecution_Once_Daily_Response_Should_Correctly_Convert_To_Local_Time()
     {
         // Arrange: 10:00 AM UTC. Madrid in May is UTC+2.
         var currentDateUtc = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
@@ -267,7 +267,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Description_Should_Include_Starting_Label_When_Limit_Is_Present()
+    public void Calculate_NextExecution_Once_Daily_Description_Should_Include_Starting_Label_When_Limit_Is_Present()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var startLimit = currentDate.AddDays(-1);
@@ -288,7 +288,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region Current Date Comparison
 
     [Fact]
-    public void ExecutionDateTime_Equal_To_CurrentDate_Should_Use_ExecutionDateTime()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTime_Equal_To_CurrentDate_Should_Use_ExecutionDateTime()
     {
         // Arrange
         var dateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -309,7 +309,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void ExecutionDateTime_Before_CurrentDate_Should_Fail()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTime_Before_CurrentDate_Should_Fail()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -328,7 +328,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void ExecutionDateTime_After_CurrentDate_Should_Use_ExecutionDateTime()
+    public void Calculate_NextExecution_Once_Daily_ExecutionDateTime_After_CurrentDate_Should_Use_ExecutionDateTime()
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
@@ -354,7 +354,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region Description Formatting
 
     [Fact]
-    public void Description_Should_Include_StartDate_When_LimitsStartDateLocal_Exists()
+    public void Calculate_NextExecution_Once_Daily_Description_Should_Include_StartDate_When_LimitsStartDateLocal_Exists()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -366,7 +366,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -376,7 +376,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Description_Should_Not_Include_StartDate_When_LimitsStartDateLocal_Is_Null()
+    public void Calculate_NextExecution_Once_Daily_Description_Should_Not_Include_StartDate_When_LimitsStartDateLocal_Is_Null()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -386,7 +386,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -394,7 +394,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void Description_Should_Respect_TimeZone_Conversion()
+    public void Calculate_NextExecution_Once_Daily_Description_Should_Respect_TimeZone_Conversion()
     {
         // Arrange: 10:00 UTC in CST (UTC-6 in winter) = 04:00 CST
         var executionDateTime = new DateTimeOffset(2026, 1, 15, 10, 0, 0, TimeSpan.Zero);
@@ -425,7 +425,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     #region Logical Consistency
 
     [Fact]
-    public void RecursEvery_Should_Be_Ignored_For_Once_Schedule()
+    public void Calculate_NextExecution_Once_Daily_RecursEvery_Should_Be_Ignored_For_Once_Schedule()
     {
         // Arrange: RecursEvery value should be irrelevant
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -436,7 +436,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -444,7 +444,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
     }
 
     [Fact]
-    public void DailyFrequency_Should_Be_Ignored_For_Once_Schedule()
+    public void Calculate_NextExecution_Once_Daily_DailyFrequency_Should_Be_Ignored_For_Once_Schedule()
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
@@ -455,7 +455,7 @@ public class Calculate_NextExecution_Once_Daily_Tests
             .Build();
 
         // Act
-        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+        var result = _service.CalculateNextExecution(executionDateTime, config);
 
         // Assert: Only one execution, not multiple
         result.IsSuccess.ShouldBeTrue();

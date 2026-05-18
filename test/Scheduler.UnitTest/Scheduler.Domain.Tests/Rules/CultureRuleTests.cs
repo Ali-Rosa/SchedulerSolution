@@ -11,7 +11,7 @@ public class CultureRuleTests
     [InlineData("es-ES")]
     [InlineData("fr-FR")]
     [InlineData("ar-SA")]
-    public void Standard_Locales_Should_Be_Valid(string locale)
+    public void CultureRule_Standard_Locales_Should_Be_Valid(string locale)
     {
         // Act
         var result = CultureRule.IsValid(locale);
@@ -26,7 +26,7 @@ public class CultureRuleTests
     [InlineData(null)]
     [InlineData("invented-culture")]
     [InlineData("12345")]
-    public void Invalid_Locales_Should_Not_Be_Valid(string? locale)
+    public void CultureRule_Invalid_Locales_Should_Not_Be_Valid(string? locale)
     {
         // Act
         var result = CultureRule.IsValid(locale!);
@@ -36,7 +36,7 @@ public class CultureRuleTests
     }
 
     [Fact]
-    public void FirstDayOfWeek_Should_Match_Culture_Defaults_When_Not_Overridden()
+    public void CultureRule_FirstDayOfWeek_Should_Match_Culture_Defaults_When_Not_Overridden()
     {
         // Arrange
         var configUS = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
@@ -52,7 +52,7 @@ public class CultureRuleTests
     }
 
     [Fact]
-    public void FirstDayOfWeek_Should_Use_Overridden_Value_Regardless_Of_Culture()
+    public void CultureRule_FirstDayOfWeek_Should_Use_Overridden_Value_Regardless_Of_Culture()
     {
         // Arrange: Culture is US (Sunday), but we manually forced Monday
         var config = ScheduleConfigurationBuilder.RecurringDaily()
@@ -68,7 +68,7 @@ public class CultureRuleTests
     }
 
     [Fact]
-    public void GetCultureInfo_Should_Return_Correct_Instance_For_Valid_Locale()
+    public void CultureRule_GetCultureInfo_Should_Return_Correct_Instance_For_Valid_Locale()
     {
         // Arrange
         var locale = "es-MX";

@@ -40,12 +40,6 @@ public static class ScheduleConfigurationValidator
                 return (false, "The frequency interval must be greater than 0.");
         }
 
-        if (config.Type == SchedulerType.Recurring && config.Occurs == SchedulerOccursType.Weekly && config.Weekly is null)
-            return (false, "Weekly configuration is required for Weekly recurring schedules.");
-
-        if (config.Type == SchedulerType.Recurring && config.Occurs == SchedulerOccursType.Monthly && config.Monthly is null)
-            return (false, "Monthly configuration is required for Monthly recurring schedules.");
-
         return (true, string.Empty);
     }
 

@@ -8,7 +8,7 @@ public class WeeklyCalendarRuleTests
     private readonly DayOfWeek[] _mondayThursdayFriday = [DayOfWeek.Monday, DayOfWeek.Thursday, DayOfWeek.Friday];
 
     [Fact]
-    public void Days_In_Initial_Week_Should_Be_Valid_When_Pattern_Matches()
+    public void WeeklyCalendarRule_Days_In_Initial_Week_Should_Be_Valid_When_Pattern_Matches()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1); // Wednesday
@@ -24,7 +24,7 @@ public class WeeklyCalendarRuleTests
     }
 
     [Fact]
-    public void Pattern_Should_Skip_Weeks_According_To_Recursion_Value()
+    public void WeeklyCalendarRule_Pattern_Should_Skip_Weeks_According_To_Recursion_Value()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1); // Wednesday (Week 0)
@@ -41,7 +41,7 @@ public class WeeklyCalendarRuleTests
     }
 
     [Fact]
-    public void FirstDayOfWeek_Should_Determine_Week_Grouping_Boundaries()
+    public void WeeklyCalendarRule_FirstDayOfWeek_Should_Determine_Week_Grouping_Boundaries()
     {
         // Start Date: Saturday 02/05/2026
         // Target Date: Sunday 03/05/2026
@@ -62,7 +62,7 @@ public class WeeklyCalendarRuleTests
     }
 
     [Fact]
-    public void Days_Not_In_Selected_List_Should_Be_Invalid()
+    public void WeeklyCalendarRule_Days_Not_In_Selected_List_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1);
@@ -77,7 +77,7 @@ public class WeeklyCalendarRuleTests
     }
 
     [Fact]
-    public void Dates_Prior_To_Start_Should_Be_Invalid()
+    public void WeeklyCalendarRule_Dates_Prior_To_Start_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 10);
@@ -92,7 +92,7 @@ public class WeeklyCalendarRuleTests
     }
 
     [Fact]
-    public void Sunday_As_Start_Of_Week_Should_Calculate_Pattern_Correctly()
+    public void WeeklyCalendarRule_Sunday_As_Start_Of_Week_Should_Calculate_Pattern_Correctly()
     {
         // Sunday is 0 in the Enum.
         var start = new DateOnly(2026, 5, 10); // Sunday (Week 0)

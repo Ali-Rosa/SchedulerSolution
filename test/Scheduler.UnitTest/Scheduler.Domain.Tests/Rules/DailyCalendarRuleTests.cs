@@ -6,7 +6,7 @@ namespace Scheduler.Domain.Tests.Rules;
 public class DailyCalendarRuleTests
 {
     [Fact]
-    public void Start_Day_Should_Always_Be_Valid()
+    public void DailyCalendarRule_Start_Day_Should_Always_Be_Valid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -21,7 +21,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Day_That_Matches_Recursion_Pattern_Should_Be_Valid()
+    public void DailyCalendarRule_Day_That_Matches_Recursion_Pattern_Should_Be_Valid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -36,7 +36,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Day_That_Does_Not_Match_Recursion_Pattern_Should_Be_Invalid()
+    public void DailyCalendarRule_Day_That_Does_Not_Match_Recursion_Pattern_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -51,7 +51,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Past_Dates_Relative_To_Start_Should_Be_Invalid()
+    public void DailyCalendarRule_Past_Dates_Relative_To_Start_Should_Be_Invalid()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 10);
@@ -66,7 +66,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Zero_RecursEvery_Should_Only_Allow_The_Start_Day()
+    public void DailyCalendarRule_Zero_RecursEvery_Should_Only_Allow_The_Start_Day()
     {
         // Arrange
         var start = new DateOnly(2026, 5, 1);
@@ -78,7 +78,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Leap_Year_Transitions_Should_Be_Calculated_Correctly()
+    public void DailyCalendarRule_Leap_Year_Transitions_Should_Be_Calculated_Correctly()
     {
         // Arrange: 2024 is a leap year (Feb 29 exists)
         var start = new DateOnly(2024, 2, 28);
@@ -93,7 +93,7 @@ public class DailyCalendarRuleTests
     }
 
     [Fact]
-    public void Long_Distance_Dates_Should_Maintain_Pattern_Integrity()
+    public void DailyCalendarRule_Long_Distance_Dates_Should_Maintain_Pattern_Integrity()
     {
         // Arrange
         var start = new DateOnly(2020, 1, 1);

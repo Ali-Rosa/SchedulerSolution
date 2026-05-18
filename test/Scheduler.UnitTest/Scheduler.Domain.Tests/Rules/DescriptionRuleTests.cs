@@ -10,8 +10,10 @@ public class DescriptionRuleTests
 {
     private readonly TimeZoneInfo _cstZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"); // UTC-6 / UTC-5 in Summer
 
+    #region Basic Description Tests
+
     [Fact]
-    public void Basic_Description_Should_Include_Time_And_Start_Date()
+    public void DescriptionRule_Basic_Description_Should_Include_Time_And_Start_Date()
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero); // 10:00 UTC
@@ -28,8 +30,12 @@ public class DescriptionRuleTests
         result.ShouldContain("Starting on 12/05/2026");
     }
 
+    #endregion Basic Description Tests
+
+    #region TimeZone Conversion Tests
+
     [Fact]
-    public void Description_Should_Display_Local_Time_Based_On_TimeZone()
+    public void DescriptionRule_Description_Should_Display_Local_Time_Based_On_TimeZone()
     {
         // Arrange
         // May 12, 2026 -> On this date CST uses Daylight Saving Time (UTC-5)
@@ -45,8 +51,12 @@ public class DescriptionRuleTests
         result.ShouldContain("at 05:00");
     }
 
+    #endregion TimeZone Conversion Tests
+
+    #region Frequency Details Tests
+
     [Fact]
-    public void Description_Should_Include_IntraDay_Frequency_Details()
+    public void DescriptionRule_Description_Should_Include_IntraDay_Frequency_Details()
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
@@ -63,8 +73,12 @@ public class DescriptionRuleTests
         result.ShouldContain("Every 2 hours");
     }
 
+    #endregion Frequency Details Tests
+
+    #region Cultural Formatting Tests
+
     [Fact]
-    public void Description_Should_Apply_Cultural_Date_Formatting()
+    public void DescriptionRule_Description_Should_Apply_Cultural_Date_Formatting()
     {
         // Arrange
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
@@ -81,5 +95,7 @@ public class DescriptionRuleTests
         // Note: If you implemented translations for "at" and "Starting on"
         // Here you could validate with .ShouldContain("a las") and .ShouldContain("Empezando el")
     }
+
+    #endregion Cultural Formatting Tests
 
 }

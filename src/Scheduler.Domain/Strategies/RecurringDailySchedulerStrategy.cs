@@ -9,9 +9,6 @@ public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        if (!CultureRule.IsValid(config.Locale!))
-            return new SchedulerResponse($"The culture '{config.Locale}' is not supported by the system.");
-
         if (config.RecursEvery <= 0) 
             return new SchedulerResponse("The Every value must be greater than 0.");
 
