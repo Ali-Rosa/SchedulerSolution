@@ -9,9 +9,9 @@ public class ScheduleStrategyKeyTests
     public void Key_Should_Follow_Value_Equality_Contract()
     {
         // Arrange
-        var key1 = new SchedulerStrategyKey(SchedulerType.Recurring, SchedulerOccursType.Daily);
-        var key2 = new SchedulerStrategyKey(SchedulerType.Recurring, SchedulerOccursType.Daily);
-        var key3 = new SchedulerStrategyKey(SchedulerType.Once, SchedulerOccursType.Daily);
+        var key1 = new StrategyKey(SchedulerType.Recurring, OccursType.Daily);
+        var key2 = new StrategyKey(SchedulerType.Recurring, OccursType.Daily);
+        var key3 = new StrategyKey(SchedulerType.Once, OccursType.Daily);
 
         // Assert: Equality & Operators (Shouldly handles the structural equality of records)
         key1.ShouldBe(key2);
@@ -21,7 +21,7 @@ public class ScheduleStrategyKeyTests
 
         // Assert: Properties Access
         key1.ScheduleType.ShouldBe(SchedulerType.Recurring);
-        key1.OccursType.ShouldBe(SchedulerOccursType.Daily);
+        key1.OccursType.ShouldBe(OccursType.Daily);
 
         // Assert: HashCode Consistency
         key1.GetHashCode().ShouldBe(key2.GetHashCode());
@@ -31,7 +31,7 @@ public class ScheduleStrategyKeyTests
         var stringRepresentation = key1.ToString();
         stringRepresentation.ShouldNotBeNullOrEmpty();
         stringRepresentation.ShouldContain(nameof(SchedulerType.Recurring));
-        stringRepresentation.ShouldContain(nameof(SchedulerOccursType.Daily));
+        stringRepresentation.ShouldContain(nameof(OccursType.Daily));
     }
 
 }

@@ -5,21 +5,12 @@ namespace Scheduler.Domain.Strategies;
 
 public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
 {
-    public SchedulerStrategyKey Key => new(SchedulerType.Recurring, SchedulerOccursType.Weekly);
+    public StrategyKey Key => new(SchedulerType.Recurring, OccursType.Weekly);
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-
-        if (config.RecursEvery <= 0)
-            return new SchedulerResponse("The Every value must be greater than 0.");
-
-        if (config.Weekly is null)
+        if (config.WeeklyConfiguration is null)
             return new SchedulerResponse("Weekly configuration is required for Weekly recurring schedules.");
-
-        if (config.Weekly.DaysOfWeek == null || !config.Weekly.DaysOfWeek.Any())
-        {
-            return new SchedulerResponse("Weekly configuration and at least one day are required.");
-        }
 
         var firstDayOfWeek = CultureRule.GetFirstDayOfWeek(config);
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
@@ -29,9 +20,9 @@ public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
             , config
             , timeZone
             , 1
-            , (currentDay, startDay) => {return WeeklyCalendarRule.IsValidDay( currentDay, startDay, config.Weekly.DaysOfWeek, config.RecursEvery, firstDayOfWeek);}
+            , (currentDay, startDay) => {return WeeklyCalendarRule.IsValidDay( currentDay, startDay, config.WeeklyConfiguration.DaysOfWeek, config.RecursEvery, firstDayOfWeek);}
             , (nextDate) => {
-                var days = string.Join(", ", config.Weekly.DaysOfWeek);
+                var days = string.Join(", ", config.WeeklyConfiguration.DaysOfWeek);
                 var prefix = $"Occurs every {config.RecursEvery} week(s) on {days}. ";
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }

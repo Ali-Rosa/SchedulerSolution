@@ -1,6 +1,6 @@
-﻿namespace Scheduler.Domain.Models;
+﻿namespace Scheduler.Domain.Models.Monthly;
 
-public enum SchedulerMonthlyRelativeOrdinal
+public enum MonthlyRelativeOrdinal
 {
     First = 1,
     Second = 2,

@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
@@ -26,7 +26,7 @@ public class ScheduleConfigurationValidatorTests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe("The Every value cannot be negative.");
+        result.ErrorMessage.ShouldBe("The Every value must be greater than 0.");
         result.NextExecutionTime.ShouldBeNull();
     }
 
@@ -51,6 +51,7 @@ public class ScheduleConfigurationValidatorTests
     {
         // Arrange
         var config = ScheduleConfigurationBuilder.OnceDaily()
+            .With_Locale("en-US")
             .Disabled()
             .Build();
 
@@ -85,7 +86,7 @@ public class ScheduleConfigurationValidatorTests
     public void ScheduleConfigurationValidator_Should_Fail_When_Locale_Is_Null_Or_Empty(string? invalidLocale)
     {
         // Arrange
-        var config = ScheduleConfigurationBuilder.RecurringDaily().Build() with { Locale = invalidLocale };
+        var config = ScheduleConfigurationBuilder.RecurringDaily().Build() with { Locale = invalidLocale! };
 
         // Act
         var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
@@ -183,7 +184,7 @@ public class ScheduleConfigurationValidatorTests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe("The execution date is outside the allowed range.");
+        result.ErrorMessage.ShouldBe("DateTime cannot be less than CurrentDate");
     }
 
     [Fact]
@@ -212,7 +213,7 @@ public class ScheduleConfigurationValidatorTests
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrequency_OccursEvery((SchedulerTimeIntervalUnit)999, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery((TimeIntervalUnit)999, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act
@@ -231,7 +232,7 @@ public class ScheduleConfigurationValidatorTests
     {
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, invalidInterval, new TimeOnly(8, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, invalidInterval, new TimeOnly(8, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act

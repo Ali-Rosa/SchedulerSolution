@@ -1,6 +1,6 @@
 namespace Scheduler.Domain.Models;
 
-public enum SchedulerOccursType
+public enum OccursType
 {
     Daily,
     Weekly,

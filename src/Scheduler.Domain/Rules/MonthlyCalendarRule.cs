@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Monthly;
 
 namespace Scheduler.Domain.Rules;
 
@@ -37,7 +37,7 @@ public static class MonthlyCalendarRule
 
     }
 
-    private static DateOnly? GetRelativeDate(int year, int month, SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType)
+    private static DateOnly? GetRelativeDate(int year, int month, MonthlyRelativeOrdinal ordinal, MonthlyRelativeDayType dayType)
     {
         int daysInMonth = DateTime.DaysInMonth(year, month);
         var matchingDays = new List<DateOnly>();
@@ -55,7 +55,7 @@ public static class MonthlyCalendarRule
         if (!matchingDays.Any()) return null;
 
         // If it's the "Last", return the last in the collected list
-        if (ordinal == SchedulerMonthlyRelativeOrdinal.Last)
+        if (ordinal == MonthlyRelativeOrdinal.Last)
             return matchingDays.Last();
 
         // For First (1), Second (2), etc... subtract 1 to get the array index (0, 1, 2...)
@@ -68,13 +68,13 @@ public static class MonthlyCalendarRule
 
     }
 
-    private static bool IsMatchingType(DateOnly date, SchedulerMonthlyRelativeDayType type)
+    private static bool IsMatchingType(DateOnly date, MonthlyRelativeDayType type)
     {
         return type switch
         {
-            SchedulerMonthlyRelativeDayType.Day => true,
-            SchedulerMonthlyRelativeDayType.Weekday => date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday,
-            SchedulerMonthlyRelativeDayType.WeekendDay => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday,
+            MonthlyRelativeDayType.Day => true,
+            MonthlyRelativeDayType.Weekday => date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday,
+            MonthlyRelativeDayType.WeekendDay => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday,
             _ => (int)date.DayOfWeek == (int)type // We take advantage of the fact that 0-6 matches System.DayOfWeek
         };
     }

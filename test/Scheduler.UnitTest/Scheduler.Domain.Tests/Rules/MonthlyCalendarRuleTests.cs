@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Monthly;
 using Scheduler.Domain.Rules;
 using Shouldly;
 
@@ -38,11 +38,11 @@ public class MonthlyCalendarRuleTests
 
     [Theory]
     // 2026-05 (May) begins Friday
-    [InlineData(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Friday, 1)] // First Friday is 01
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Monday, 11)] // Second Monday is 11
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Day, 31)] // Last day of the month
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Third, SchedulerMonthlyRelativeDayType.WeekendDay, 9)] // Third weekend day (Sun 3, Sat 8, Sun 9) -> Note: In May 2026 (Sat 2, Sun 3, Sat 9) -> The third is Saturday 9.
-    public void MonthlyCalendarRule_Relative_Days_Should_Be_Calculated_Correctly(SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType, int expectedDay)
+    [InlineData(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Friday, 1)] // First Friday is 01
+    [InlineData(MonthlyRelativeOrdinal.Second, MonthlyRelativeDayType.Monday, 11)] // Second Monday is 11
+    [InlineData(MonthlyRelativeOrdinal.Last, MonthlyRelativeDayType.Day, 31)] // Last day of the month
+    [InlineData(MonthlyRelativeOrdinal.Third, MonthlyRelativeDayType.WeekendDay, 9)] // Third weekend day (Sun 3, Sat 8, Sun 9) -> Note: In May 2026 (Sat 2, Sun 3, Sat 9) -> The third is Saturday 9.
+    public void MonthlyCalendarRule_Relative_Days_Should_Be_Calculated_Correctly(MonthlyRelativeOrdinal ordinal, MonthlyRelativeDayType dayType, int expectedDay)
     {
         // Arrange
         var startDate = new DateOnly(2026, 5, 1);
@@ -73,16 +73,16 @@ public class MonthlyCalendarRuleTests
     [Theory]
     // Months with different starts to ensure calendar independence
     // Ordinal, Day Type, Year, Month, Expected Day
-    [InlineData(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Monday, 2026, 5, 4)]
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Thursday, 2026, 5, 14)]
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Third, SchedulerMonthlyRelativeDayType.Wednesday, 2026, 5, 20)]
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Fourth, SchedulerMonthlyRelativeDayType.Saturday, 2026, 5, 23)]
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Monday, 2026, 5, 25)]
-    [InlineData(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Weekday, 2026, 5, 1)] // First weekday is 1
-    [InlineData(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.WeekendDay, 2026, 5, 31)] // Sunday 31
+    [InlineData(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Monday, 2026, 5, 4)]
+    [InlineData(MonthlyRelativeOrdinal.Second, MonthlyRelativeDayType.Thursday, 2026, 5, 14)]
+    [InlineData(MonthlyRelativeOrdinal.Third, MonthlyRelativeDayType.Wednesday, 2026, 5, 20)]
+    [InlineData(MonthlyRelativeOrdinal.Fourth, MonthlyRelativeDayType.Saturday, 2026, 5, 23)]
+    [InlineData(MonthlyRelativeOrdinal.Last, MonthlyRelativeDayType.Monday, 2026, 5, 25)]
+    [InlineData(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Weekday, 2026, 5, 1)] // First weekday is 1
+    [InlineData(MonthlyRelativeOrdinal.Last, MonthlyRelativeDayType.WeekendDay, 2026, 5, 31)] // Sunday 31
     public void MonthlyCalendarRule_Relative_Days_Complex_Combinations(
-        SchedulerMonthlyRelativeOrdinal ordinal
-        , SchedulerMonthlyRelativeDayType dayType
+        MonthlyRelativeOrdinal ordinal
+        , MonthlyRelativeDayType dayType
         , int year
         , int month
         , int expectedDay)

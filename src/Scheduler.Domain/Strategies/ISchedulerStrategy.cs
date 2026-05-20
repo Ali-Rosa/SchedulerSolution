@@ -4,6 +4,6 @@ namespace Scheduler.Domain.Strategies;
 
 public interface ISchedulerStrategy
 {
-    SchedulerStrategyKey Key { get; }
+    StrategyKey Key { get; }
     SchedulerResponse CalculateNextExecution(DateTimeOffset currentUtc, SchedulerConfiguration config, TimeZoneInfo timeZone);
 }

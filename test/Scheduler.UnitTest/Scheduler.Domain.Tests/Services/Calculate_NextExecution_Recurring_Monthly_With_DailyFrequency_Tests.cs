@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Daily;
+using Scheduler.Domain.Models.Monthly;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
@@ -23,8 +24,8 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(3)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Thursday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Thursday)
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
             .With_Limits_StartDateLocal(startDate)
             .Build();
 
@@ -60,8 +61,8 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(1) // Cada mes
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.WeekendDay)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.Second, MonthlyRelativeDayType.WeekendDay)
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
             .With_Limits_StartDateLocal(startDate)
             .Build();
 
@@ -89,12 +90,12 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
     #region Daily Frequency Precedence
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_OccursOnceIsEnabled_TakesPrecedenceOverOccursEvery_ReturnsCorrectTime()
+    public void Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_OccursOnceIsEnabled_TakesPrecedenceOverOccursEvery_ReturnsCorrectTime_YA_NO_EXISTE()
     {
         // Arrange
         var frequencyAmbigua = new ScheduleDailyFrequency(
-            OccursOnceEnable: true, OnceTime: new TimeOnly(18, 0),
-            OccursEveryEnable: true, IntervalUnit: SchedulerTimeIntervalUnit.Hours, FrequencyInterval: 2,
+            OnceTime: new TimeOnly(18, 0),
+            OccursEveryEnable: false, IntervalUnit: TimeIntervalUnit.Hours, FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0), EndTime: new TimeOnly(8, 0)
         );
 
@@ -150,7 +151,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.Weekday)
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.Last, MonthlyRelativeDayType.Weekday)
             .With_DailyFrequency_OccursOnce(new TimeOnly(17, 0))
             .Build();
 
@@ -203,7 +204,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(10)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Minutes, 15, new TimeOnly(8, 0), new TimeOnly(9, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Minutes, 15, new TimeOnly(8, 0), new TimeOnly(9, 0))
             .Build();
 
         // Act
@@ -227,8 +228,8 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.Monday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 6, new TimeOnly(6, 0), new TimeOnly(18, 0))
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.Second, MonthlyRelativeDayType.Monday)
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 6, new TimeOnly(6, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act
@@ -253,7 +254,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(5)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Seconds, 30, new TimeOnly(10, 0), new TimeOnly(10, 2))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Seconds, 30, new TimeOnly(10, 0), new TimeOnly(10, 2))
             .Build();
 
         // Act
@@ -282,7 +283,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(31)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(17, 0), new TimeOnly(19, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(17, 0), new TimeOnly(19, 0))
             .Build();
 
         // Act
@@ -313,7 +314,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(3) // Cada 3 meses
             .With_MonthlySpecificDay(31)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(17, 0), new TimeOnly(19, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(17, 0), new TimeOnly(19, 0))
             .Build();
 
         // Act
@@ -344,7 +345,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(2)
             .With_MonthlySpecificDay(15)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 4, new TimeOnly(8, 0), new TimeOnly(20, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 4, new TimeOnly(8, 0), new TimeOnly(20, 0))
             .With_Limits_StartDateLocal(startDate)
             .Build();
 
@@ -405,7 +406,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(20)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Seconds, 15, new TimeOnly(10, 0, 0), new TimeOnly(10, 0, 45))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Seconds, 15, new TimeOnly(10, 0, 0), new TimeOnly(10, 0, 45))
             .Build();
 
         // Act
@@ -449,7 +450,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Last, SchedulerMonthlyRelativeDayType.WeekendDay)
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.Last, MonthlyRelativeDayType.WeekendDay)
             .Build();
 
         // Act
@@ -502,7 +503,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_TimeZoneId(cstZone.Id)
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(10)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(12, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(12, 0))
             .Build();
 
         // Act
@@ -546,7 +547,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_MonthlySpecificDay(15)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 3, new TimeOnly(9, 0), new TimeOnly(18, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 3, new TimeOnly(9, 0), new TimeOnly(18, 0))
             .Build();
 
         // Act
@@ -564,7 +565,7 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(2)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Monday)
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Monday)
             .With_DailyFrequency_OccursOnce(new TimeOnly(15, 0))
             .Build();
 
@@ -590,8 +591,8 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(3)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.First, SchedulerMonthlyRelativeDayType.Thursday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.First, MonthlyRelativeDayType.Thursday)
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
             .With_Limits_StartDateLocal(startDate)
             .Build();
 
@@ -624,8 +625,8 @@ public class Calculate_NextExecution_Recurring_Monthly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringMonthly()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_MonthlyRelativeDay(SchedulerMonthlyRelativeOrdinal.Second, SchedulerMonthlyRelativeDayType.WeekendDay)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
+            .With_MonthlyRelativeDay(MonthlyRelativeOrdinal.Second, MonthlyRelativeDayType.WeekendDay)
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(3, 0), new TimeOnly(6, 0))
             .With_Limits_StartDateLocal(startDate)
             .Build();
 

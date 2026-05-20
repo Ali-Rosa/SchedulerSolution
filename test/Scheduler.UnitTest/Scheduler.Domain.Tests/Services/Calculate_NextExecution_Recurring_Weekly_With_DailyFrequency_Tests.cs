@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Daily;
+using Scheduler.Domain.Models.Weekly;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
@@ -28,7 +29,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(1)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -55,7 +56,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
             .With_Locale("en-US")
             .With_RecursEvery(2)
             .With_WeeklyDays(DayOfWeek.Monday, DayOfWeek.Friday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .With_FirstDayOfWeek(DayOfWeek.Monday)
             .Build();
 
@@ -72,11 +73,11 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
     #region Mode Precedence
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
+    public void Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery_TA_NO_EXISTE()
     {
         var frequencyAmbigua = new ScheduleDailyFrequency(
-            OccursOnceEnable: true, OnceTime: new TimeOnly(15, 0),
-            OccursEveryEnable: true, IntervalUnit: SchedulerTimeIntervalUnit.Hours, FrequencyInterval: 2,
+            OnceTime: new TimeOnly(15, 0),
+            OccursEveryEnable: false, IntervalUnit: TimeIntervalUnit.Hours, FrequencyInterval: 2,
             StartTime: new TimeOnly(4, 0), EndTime: new TimeOnly(8, 0)
         );
 
@@ -119,7 +120,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
     {
         var frequencyNula = new SchedulerWeekly(DaysOfWeek: null!);
         var config = ScheduleConfigurationBuilder.RecurringWeekly().With_Locale("en-US").Build();
-        var configConError = config with { Weekly = frequencyNula };
+        var configConError = config with { WeeklyConfiguration = frequencyNula };
 
         var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configConError);
 
@@ -212,7 +213,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Minutes, 15, new TimeOnly(4, 0), new TimeOnly(5, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Minutes, 15, new TimeOnly(4, 0), new TimeOnly(5, 0))
             .Build();
 
         // Act
@@ -234,7 +235,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Seconds, 20, new TimeOnly(4, 0, 0), new TimeOnly(4, 1, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Seconds, 20, new TimeOnly(4, 0, 0), new TimeOnly(4, 1, 0))
             .Build();
 
         // Act
@@ -257,7 +258,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Seconds, 20, new TimeOnly(4, 0, 0), new TimeOnly(4, 1, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Seconds, 20, new TimeOnly(4, 0, 0), new TimeOnly(4, 1, 0))
             .Build();
 
         // Act
@@ -283,7 +284,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, hourInterval, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, hourInterval, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -308,7 +309,7 @@ public class Calculate_NextExecution_Recurring_Weekly_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
             .With_Locale("en-US")
             .With_WeeklyDays(DayOfWeek.Wednesday, DayOfWeek.Thursday)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 1, new TimeOnly(22, 0), new TimeOnly(23, 59, 59))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 1, new TimeOnly(22, 0), new TimeOnly(23, 59, 59))
             .Build();
 
         // Act

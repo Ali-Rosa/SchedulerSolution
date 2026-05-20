@@ -1,6 +1,6 @@
-﻿namespace Scheduler.Domain.Models;
+﻿namespace Scheduler.Domain.Models.Monthly;
 
-public enum SchedulerMonthlyRelativeDayType
+public enum MonthlyRelativeDayType
 {
     // mapped 0-6 exactly the same as "System.DayOfWeek" to facilitate the conversion
     Sunday      = 0,

@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Scheduler.Domain.Models;
+using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Rules;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Shouldly;
@@ -62,7 +62,7 @@ public class DescriptionRuleTests
         var nextExecution = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
         var culture = new CultureInfo("en-US");
 

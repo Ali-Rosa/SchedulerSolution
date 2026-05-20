@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Weekly;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
@@ -30,7 +30,7 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
 
     [Theory]
     [InlineData(0, "The Every value must be greater than 0.")]
-    [InlineData(-1, "The Every value cannot be negative.")]
+    [InlineData(-1, "The Every value must be greater than 0.")]
     public void Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_IRecursEvery_Validation_Should_Be_Strict(int invalidValue, string expectedError)
     {
         var config = ScheduleConfigurationBuilder.RecurringWeekly()
@@ -68,7 +68,7 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
         var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
 
         result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe("Weekly configuration and at least one day are required.");
+        result.ErrorMessage.ShouldBe("Weekly configuration requires at least one day.");
     }
 
     #endregion Validation Tests
@@ -292,7 +292,7 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
     {
         var frequencyNula = new SchedulerWeekly(DaysOfWeek: null!);
         var config = ScheduleConfigurationBuilder.RecurringWeekly().With_Locale("en-US").Build();
-        var configConError = config with { Weekly = frequencyNula };
+        var configConError = config with { WeeklyConfiguration = frequencyNula };
 
         var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, configConError);
 

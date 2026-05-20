@@ -5,13 +5,10 @@ namespace Scheduler.Domain.Strategies;
 
 public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
 {
-    public SchedulerStrategyKey Key => new(SchedulerType.Recurring, SchedulerOccursType.Daily);
+    public StrategyKey Key => new(SchedulerType.Recurring, OccursType.Daily);
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        if (config.RecursEvery <= 0) 
-            return new SchedulerResponse("The Every value must be greater than 0.");
-
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(

@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
@@ -15,14 +15,13 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     #region Precedence & Exclusivity Logic
 
     [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery()
+    public void Calculate_NextExecution_Recurring_Daily_Mode_OccursOnce_Should_Take_Precedence_Over_OccursEvery_YA_NO_EXISTE()
     {
         // Arrange: Conflict scenario (both modes on True). 'Eleven' must win.
         var frequencyAmbigua = new ScheduleDailyFrequency(
-            OccursOnceEnable: true,
             OnceTime: new TimeOnly(15, 0), // 3 PM
-            OccursEveryEnable: true,       // Also enabled (User error)
-            IntervalUnit: SchedulerTimeIntervalUnit.Hours,
+            OccursEveryEnable: false,       // Also enabled (User error)
+            IntervalUnit: TimeIntervalUnit.Hours,
             FrequencyInterval: 1,
             StartTime: new TimeOnly(8, 0),
             EndTime: new TimeOnly(10, 0)
@@ -100,7 +99,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -120,7 +119,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(3)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -133,9 +132,9 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
     }
 
     [Theory]
-    [InlineData(SchedulerTimeIntervalUnit.Minutes, 15, 12, 15)]
-    [InlineData(SchedulerTimeIntervalUnit.Seconds, 20, 12, 0, 20)]
-    public void Calculate_NextExecution_Recurring_Daily_OccursEvery_Should_Handle_Small_Time_Units_Correctly(SchedulerTimeIntervalUnit unit, int interval, int h, int m, int s = 0)
+    [InlineData(TimeIntervalUnit.Minutes, 15, 12, 15)]
+    [InlineData(TimeIntervalUnit.Seconds, 20, 12, 0, 20)]
+    public void Calculate_NextExecution_Recurring_Daily_OccursEvery_Should_Handle_Small_Time_Units_Correctly(TimeIntervalUnit unit, int interval, int h, int m, int s = 0)
     {
         // Arrange: 12:00:00 exact.
         var currentDate = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero);
@@ -167,7 +166,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act
@@ -190,7 +189,7 @@ public class Calculate_NextExecution_Recurring_Daily_With_DailyFrequency_Tests
         var config = ScheduleConfigurationBuilder.RecurringDaily()
             .With_Locale("en-US")
             .With_RecursEvery(1)
-            .With_DailyFrequency_OccursEvery(SchedulerTimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
+            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(4, 0), new TimeOnly(8, 0))
             .Build();
 
         // Act

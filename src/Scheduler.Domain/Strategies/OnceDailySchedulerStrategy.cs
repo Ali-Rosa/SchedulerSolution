@@ -4,7 +4,7 @@ namespace Scheduler.Domain.Strategies;
 
 public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
 {
-    public SchedulerStrategyKey Key => new(SchedulerType.Once, SchedulerOccursType.Daily);
+    public StrategyKey Key => new(SchedulerType.Once, OccursType.Daily);
 
     public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
     {

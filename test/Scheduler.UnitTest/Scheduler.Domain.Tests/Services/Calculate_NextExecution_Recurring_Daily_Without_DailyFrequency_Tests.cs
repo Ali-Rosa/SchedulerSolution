@@ -26,7 +26,7 @@ public class Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Test
 
     [Theory]
     [InlineData(0, "The Every value must be greater than 0.")]     // Arrested by the Strategy
-    [InlineData(-1, "The Every value cannot be negative.")]        // Stopped by the Validator
+    [InlineData(-1, "The Every value must be greater than 0.")]        // Stopped by the Validator
     public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_RecursEvery_Zero_Or_Less_Should_Be_Rejected(int invalidValue, string expectedError)
     {
         // Arrange
