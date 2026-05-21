@@ -12,15 +12,15 @@ public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc
-            , config
-            , timeZone
-            , 1
-            , (currentDay, startDay) => {return DailyCalendarRule.IsValidDay(currentDay, startDay, config.RecursEvery);}
-            , (nextDate) => {
+            currentDateUtc,
+            config,
+            timeZone,
+            (fromDay, startDay) => DailyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery),
+            (nextDate) => {
                 var prefix = config.RecursEvery == 1 ? "Occurs every day. " : $"Occurs every {config.RecursEvery} days. ";
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );
     }
+
 }

@@ -1,8 +1,9 @@
-﻿using Scheduler.Domain.Models.Daily;
+﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Services;
-using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
+using System;
 
 namespace Scheduler.Domain.Tests.Services;
 
@@ -17,7 +18,16 @@ public class Calculate_NextExecution_Once_Daily_Tests
     public void Calculate_NextExecution_Once_Daily_CurrentDate_Should_Be_Used_When_No_Execution_Time_Provided()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily().With_Locale("en-US").Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         var result = _service.CalculateNextExecution(currentDate, config);
 
@@ -30,10 +40,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
     public void Calculate_NextExecution_Once_Daily_Exact_CurrentDate_Should_Be_Valid_Execution_Time()
     {
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(currentDate)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = currentDate,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         var result = _service.CalculateNextExecution(currentDate, config);
 
@@ -47,10 +64,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -68,9 +92,16 @@ public class Calculate_NextExecution_Once_Daily_Tests
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 12, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -95,10 +126,16 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var pastExecution = currentDate.AddHours(-hoursBack);
 
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(pastExecution)
-            .Build();
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = pastExecution,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -117,16 +154,25 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var execution = currentDate.AddDays(daysToExecution);
 
-        var builder = ScheduleConfigurationBuilder.OnceDaily().With_Locale("en-US").With_ExecutionDateTimeLocal(execution);
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = execution,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // If daysToExecution is less than the limit, test StartDate
         if (daysToExecution < daysToLimit)
-            builder.With_Limits_StartDateLocal(currentDate.AddDays(daysToLimit));
+            config = config with { LimitsStartDateLocal = currentDate.AddDays(daysToLimit) };
         else // If greater, test EndDate
-            builder.With_Limits_EndDateLocal(currentDate.AddDays(daysToLimit));
+            config = config with { LimitsEndDateLocal = currentDate.AddDays(daysToLimit) };
 
         // Act
-        var result = _service.CalculateNextExecution(currentDate, builder.Build());
+        var result = _service.CalculateNextExecution(currentDate, config);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -144,11 +190,18 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
         var startLimit = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 10, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_StartDateLocal(startLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsStartDateLocal = startLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -165,11 +218,18 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero); // Before execution
         var endLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_EndDateLocal(endLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsEndDateLocal = endLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -186,12 +246,19 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
         var endLimit = new DateTimeOffset(2026, 5, 20, 23, 59, 59, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_StartDateLocal(startLimit)
-            .With_Limits_EndDateLocal(endLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsStartDateLocal = startLimit,
+            LimitsEndDateLocal = endLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -207,11 +274,18 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange: Execution exactly at the start date boundary
         var startLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_StartDateLocal(startLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsStartDateLocal = startLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -227,11 +301,18 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange: Execution exactly at the end date boundary
         var endLimit = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_EndDateLocal(endLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsEndDateLocal = endLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -252,10 +333,15 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDateUtc = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
         var timeZoneId = "Romance Standard Time";
 
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_TimeZoneId(timeZoneId)
-            .Build();
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = timeZoneId,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDateUtc, config);
@@ -272,10 +358,16 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var currentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero);
         var startLimit = currentDate.AddDays(-1);
 
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_Limits_StartDateLocal(startLimit)
-            .Build();
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsStartDateLocal = startLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         var result = _service.CalculateNextExecution(currentDate, config);
 
@@ -292,10 +384,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
     {
         // Arrange
         var dateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(dateTime)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = dateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(dateTime, config);
@@ -314,10 +413,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -333,10 +439,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -359,11 +472,18 @@ public class Calculate_NextExecution_Once_Daily_Tests
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
         var startLimit = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_Limits_StartDateLocal(startLimit)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            LimitsStartDateLocal = startLimit,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -380,10 +500,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -401,11 +528,16 @@ public class Calculate_NextExecution_Once_Daily_Tests
         var cstZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
         var currentDate = new DateTimeOffset(2026, 1, 10, 0, 0, 0, TimeSpan.Zero); // Before execution
 
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_TimeZoneId(cstZone.Id)
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .Build();
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = cstZone.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);
@@ -429,11 +561,17 @@ public class Calculate_NextExecution_Once_Daily_Tests
     {
         // Arrange: RecursEvery value should be irrelevant
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_RecursEvery(5) // Should be ignored
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 5,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -448,11 +586,25 @@ public class Calculate_NextExecution_Once_Daily_Tests
     {
         // Arrange
         var executionDateTime = new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_ExecutionDateTimeLocal(executionDateTime)
-            .With_DailyFrequency_OccursEvery(TimeIntervalUnit.Hours, 2, new TimeOnly(8, 0), new TimeOnly(18, 0))
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Once,
+            ExecutionDateTimeLocal = executionDateTime,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = TimeIntervalUnit.Hours,
+                FrequencyInterval = 2,
+                StartTime = new TimeOnly(8, 0),
+                EndTime = new TimeOnly(18, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(executionDateTime, config);
@@ -465,4 +617,4 @@ public class Calculate_NextExecution_Once_Daily_Tests
 
     #endregion Logical Consistency
 
-}
+    }

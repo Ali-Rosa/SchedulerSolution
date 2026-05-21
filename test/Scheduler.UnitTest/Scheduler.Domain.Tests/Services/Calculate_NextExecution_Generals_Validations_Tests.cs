@@ -1,6 +1,6 @@
-﻿using Scheduler.Domain.Services;
+﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Services;
 using Scheduler.Domain.Strategies;
-using Scheduler.Domain.Tests.TestHelpers.Builders;
 using Scheduler.Domain.Tests.TestHelpers.Factories;
 using Shouldly;
 
@@ -33,14 +33,20 @@ public class Calculate_NextExecution_Generals_Validations_Tests
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
 
-        // We manually created a service with only one strategy to force a search failure
         var schedulerService = new SchedulerService(new ISchedulerStrategy[]
         {
             new OnceDailySchedulerStrategy()
         });
 
-        // We attempt to request a RecurringDaily that is not registered in this schedulerService
-        var config = ScheduleConfigurationBuilder.RecurringDaily().With_Locale("en-US").Build();
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
         // Act
         var result = schedulerService.CalculateNextExecution(currentDate, config);
@@ -56,10 +62,16 @@ public class Calculate_NextExecution_Generals_Validations_Tests
     {
         // Arrange
         var currentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero);
-        var config = ScheduleConfigurationBuilder.OnceDaily()
-            .With_Locale("en-US")
-            .With_TimeZoneId("Invalid/Zone_Name")
-            .Build();
+
+        SchedulerConfiguration config = new()
+        {
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            TimeZoneId = "Invalid/Zone_Name",
+            Locale = "en-US",
+        };
 
         // Act
         var result = _service.CalculateNextExecution(currentDate, config);

@@ -1,12 +1,12 @@
 ﻿namespace Scheduler.Domain.Models.Monthly;
 
-public sealed record SchedulerMonthly(
-    bool IsSpecificDay,
-    int? SpecificDayNumber,
-    MonthlyRelativeOrdinal? RelativeOrdinal,
-    MonthlyRelativeDayType? RelativeDayType
-)
+public sealed record SchedulerMonthly
 {
+    public bool IsSpecificDay { get; init; }
+    public int? SpecificDayNumber { get; init; }
+    public MonthlyRelativeOrdinal? RelativeOrdinal { get; init; }
+    public MonthlyRelativeDayType? RelativeDayType { get; init; }
+
     public (bool IsValid, string Error) Validate()
     {
         if (IsSpecificDay)
@@ -25,4 +25,4 @@ public sealed record SchedulerMonthly(
 
         return (true, string.Empty);
     }
-};
+}

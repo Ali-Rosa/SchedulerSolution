@@ -1,139 +1,139 @@
-﻿using Scheduler.Domain.Models;
-using Scheduler.Domain.Models.Daily;
-using Scheduler.Domain.Models.Monthly;
-using Scheduler.Domain.Models.Weekly;
+﻿//using Scheduler.Domain.Models;
+//using Scheduler.Domain.Models.Daily;
+//using Scheduler.Domain.Models.Monthly;
+//using Scheduler.Domain.Models.Weekly;
 
-namespace Scheduler.Domain.Tests.TestHelpers.Builders;
+//namespace Scheduler.Domain.Tests.TestHelpers.Builders;
 
-public sealed class ScheduleConfigurationBuilder
-{
-    private bool _enabled = true;
-    private SchedulerType _type = SchedulerType.Once;
-    private OccursType _occurs = OccursType.Daily;
-    private int _recursEvery = 1;
-    private string _timeZoneId = TimeZoneInfo.Utc.Id;
-    private string? _locale;
-    private DayOfWeek? _firstDayOfWeek = null;
-    private DateTimeOffset? _executionDateTimeLocal;
-    private DateTimeOffset? _limitsStartDateLocal;
-    private DateTimeOffset? _limitsEndDateLocal;
-    private ScheduleDailyFrequency? _dailyFrequencyConfiguration;
-    private SchedulerWeekly? _weeklyConfiguration;
-    private SchedulerMonthly? _monthlyConfiguration;
+//public sealed class ScheduleConfigurationBuilder
+//{
+//    private bool _enabled = true;
+//    private SchedulerType _type = SchedulerType.Once;
+//    private OccursType _occurs = OccursType.Daily;
+//    private int _recursEvery = 1;
+//    private string _timeZoneId = TimeZoneInfo.Utc.Id;
+//    private string? _locale;
+//    private DayOfWeek? _firstDayOfWeek = null;
+//    private DateTimeOffset? _executionDateTimeLocal;
+//    private DateTimeOffset? _limitsStartDateLocal;
+//    private DateTimeOffset? _limitsEndDateLocal;
+//    private ScheduleDailyFrequency? _dailyFrequencyConfiguration;
+//    private SchedulerWeekly? _weeklyConfiguration;
+//    private SchedulerMonthly? _monthlyConfiguration;
 
-    #region Entry Points
+//    #region Entry Points
 
-    public static ScheduleConfigurationBuilder OnceDaily()
-        => new() { _type = SchedulerType.Once, _recursEvery = 1, _occurs = OccursType.Daily };
+//    public static ScheduleConfigurationBuilder OnceDaily()
+//        => new() { _type = SchedulerType.Once, _recursEvery = 1, _occurs = OccursType.Daily };
 
-    public static ScheduleConfigurationBuilder RecurringDaily()
-        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Daily };
+//    public static ScheduleConfigurationBuilder RecurringDaily()
+//        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Daily };
 
-    public static ScheduleConfigurationBuilder RecurringWeekly()
-        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Weekly };
+//    public static ScheduleConfigurationBuilder RecurringWeekly()
+//        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Weekly };
 
-    public static ScheduleConfigurationBuilder RecurringMonthly()
-        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Monthly };
+//    public static ScheduleConfigurationBuilder RecurringMonthly()
+//        => new() { _type = SchedulerType.Recurring, _recursEvery = 1, _occurs = OccursType.Monthly };
 
-    #endregion Entry Points
+//    #endregion Entry Points
 
-    #region Basic settings
+//    #region Basic settings
 
-    public ScheduleConfigurationBuilder Disabled() { _enabled = false; return this; }
+//    public ScheduleConfigurationBuilder Disabled() { _enabled = false; return this; }
 
-    public ScheduleConfigurationBuilder With_RecursEvery(int recursEvery) { _recursEvery = recursEvery; return this; }
+//    public ScheduleConfigurationBuilder With_RecursEvery(int recursEvery) { _recursEvery = recursEvery; return this; }
 
-    public ScheduleConfigurationBuilder With_TimeZoneId(string timeZoneId) { _timeZoneId = timeZoneId; return this; }
+//    public ScheduleConfigurationBuilder With_TimeZoneId(string timeZoneId) { _timeZoneId = timeZoneId; return this; }
 
-    public ScheduleConfigurationBuilder With_ExecutionDateTimeLocal(DateTimeOffset executionDateTimeLocal) { _executionDateTimeLocal = executionDateTimeLocal; return this; }
+//    public ScheduleConfigurationBuilder With_ExecutionDateTimeLocal(DateTimeOffset executionDateTimeLocal) { _executionDateTimeLocal = executionDateTimeLocal; return this; }
 
-    public ScheduleConfigurationBuilder With_Limits_StartDateLocal(DateTimeOffset limitsStartDateLocal) { _limitsStartDateLocal = limitsStartDateLocal; return this; }
+//    public ScheduleConfigurationBuilder With_Limits_StartDateLocal(DateTimeOffset limitsStartDateLocal) { _limitsStartDateLocal = limitsStartDateLocal; return this; }
 
-    public ScheduleConfigurationBuilder With_Limits_EndDateLocal(DateTimeOffset limitsEndDateLocal) { _limitsEndDateLocal = limitsEndDateLocal; return this; }
+//    public ScheduleConfigurationBuilder With_Limits_EndDateLocal(DateTimeOffset limitsEndDateLocal) { _limitsEndDateLocal = limitsEndDateLocal; return this; }
 
-    //public ScheduleConfigurationBuilder With_Occurs(OccursType occurs) { _occurs = occurs; return this; }
+//    //public ScheduleConfigurationBuilder With_Occurs(OccursType occurs) { _occurs = occurs; return this; }
 
-    public ScheduleConfigurationBuilder With_Locale(string locale) { _locale = locale; return this; }
+//    public ScheduleConfigurationBuilder With_Locale(string locale) { _locale = locale; return this; }
 
-    public ScheduleConfigurationBuilder With_FirstDayOfWeek(DayOfWeek firstDay) { _firstDayOfWeek = firstDay; return this; }
+//    public ScheduleConfigurationBuilder With_FirstDayOfWeek(DayOfWeek firstDay) { _firstDayOfWeek = firstDay; return this; }
 
-    #endregion Basic settings
+//    #endregion Basic settings
 
-    #region Daily Frequency Settings
+//    #region Daily Frequency Settings
 
-    public ScheduleConfigurationBuilder With_DailyFrequency(ScheduleDailyFrequency dailyFrequency)
-    {
-        _dailyFrequencyConfiguration = dailyFrequency;
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_DailyFrequency(ScheduleDailyFrequency dailyFrequency)
+//    {
+//        _dailyFrequencyConfiguration = dailyFrequency;
+//        return this;
+//    }
 
-    public ScheduleConfigurationBuilder With_DailyFrequency_OccursOnce(TimeOnly onceTime)
-    {
-        _dailyFrequencyConfiguration = new ScheduleDailyFrequency(onceTime, false, default, 0, default, default);
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_DailyFrequency_OccursOnce(TimeOnly onceTime)
+//    {
+//        _dailyFrequencyConfiguration = new ScheduleDailyFrequency(onceTime, false, default, 0, default, default);
+//        return this;
+//    }
 
-    public ScheduleConfigurationBuilder With_DailyFrequency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
-    {
-        _dailyFrequencyConfiguration = new ScheduleDailyFrequency(default, true, intervalUnit, frequencyInterval, startTime, endTime);
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_DailyFrequency_OccursEvery(TimeIntervalUnit intervalUnit, int frequencyInterval, TimeOnly startTime, TimeOnly endTime)
+//    {
+//        _dailyFrequencyConfiguration = new ScheduleDailyFrequency(default, true, intervalUnit, frequencyInterval, startTime, endTime);
+//        return this;
+//    }
 
-    #endregion Daily Frequency Settings
+//    #endregion Daily Frequency Settings
 
-    #region Weekly Settings
+//    #region Weekly Settings
 
-    public ScheduleConfigurationBuilder With_WeeklyDays(params DayOfWeek[] days)
-    {
-        _weeklyConfiguration = new SchedulerWeekly(days);
-        _occurs = OccursType.Weekly;
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_WeeklyDays(params DayOfWeek[] days)
+//    {
+//        _weeklyConfiguration = new SchedulerWeekly(days);
+//        _occurs = OccursType.Weekly;
+//        return this;
+//    }
 
-    #endregion Weekly Settings
+//    #endregion Weekly Settings
 
-    #region Monthly Settings
+//    #region Monthly Settings
 
-    public ScheduleConfigurationBuilder With_MonthlySpecificDay(int dayNumber)
-    {
-        _monthlyConfiguration = new SchedulerMonthly(true, dayNumber, null, null);
-        _occurs = OccursType.Monthly;
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_MonthlySpecificDay(int dayNumber)
+//    {
+//        _monthlyConfiguration = new SchedulerMonthly(true, dayNumber, null, null);
+//        _occurs = OccursType.Monthly;
+//        return this;
+//    }
 
-    public ScheduleConfigurationBuilder With_MonthlyRelativeDay(MonthlyRelativeOrdinal ordinal, MonthlyRelativeDayType dayType)
-    {
-        _monthlyConfiguration = new SchedulerMonthly(false, null, ordinal, dayType);
-        _occurs = OccursType.Monthly;
-        return this;
-    }
+//    public ScheduleConfigurationBuilder With_MonthlyRelativeDay(MonthlyRelativeOrdinal ordinal, MonthlyRelativeDayType dayType)
+//    {
+//        _monthlyConfiguration = new SchedulerMonthly(false, null, ordinal, dayType);
+//        _occurs = OccursType.Monthly;
+//        return this;
+//    }
 
-    #endregion Monthly Settings
+//    #endregion Monthly Settings
 
-    #region For Invalid Configurations
+//    #region For Invalid Configurations
 
-    public ScheduleConfigurationBuilder With_Invalid_ScheduleType() { _type = (SchedulerType)1222; return this; }
-    public ScheduleConfigurationBuilder With_Invalid_OccursType() { _occurs = (OccursType)1999; return this; }
-    
-    #endregion For Invalid Configurations
+//    public ScheduleConfigurationBuilder With_Invalid_ScheduleType() { _type = (SchedulerType)1222; return this; }
+//    public ScheduleConfigurationBuilder With_Invalid_OccursType() { _occurs = (OccursType)1999; return this; }
 
-    public SchedulerConfiguration Build()
-    {
-        return new SchedulerConfiguration(
-            _enabled,
-            _type,
-            _executionDateTimeLocal,
-            _occurs,
-            _recursEvery,
-            _limitsStartDateLocal,
-            _limitsEndDateLocal,
-            _timeZoneId,
-            _locale,
-            _firstDayOfWeek,
-            _dailyFrequencyConfiguration,
-            _weeklyConfiguration,
-            _monthlyConfiguration
-        );
-    }
+//    #endregion For Invalid Configurations
 
-}
+//    public SchedulerConfiguration Build()
+//    {
+//        return new SchedulerConfiguration(
+//            _enabled,
+//            _type,
+//            _executionDateTimeLocal,
+//            _occurs,
+//            _recursEvery,
+//            _limitsStartDateLocal,
+//            _limitsEndDateLocal,
+//            _timeZoneId,
+//            _locale!,
+//            _firstDayOfWeek,
+//            _dailyFrequencyConfiguration,
+//            _weeklyConfiguration,
+//            _monthlyConfiguration
+//        );
+//    }
+
+//}

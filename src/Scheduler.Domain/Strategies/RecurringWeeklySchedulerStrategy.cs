@@ -16,16 +16,16 @@ public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc
-            , config
-            , timeZone
-            , 1
-            , (currentDay, startDay) => {return WeeklyCalendarRule.IsValidDay( currentDay, startDay, config.WeeklyConfiguration.DaysOfWeek, config.RecursEvery, firstDayOfWeek);}
-            , (nextDate) => {
+            currentDateUtc,
+            config,
+            timeZone,
+            (fromDay, startDay) => WeeklyCalendarRule.GetNextValidDay(fromDay, startDay, config.WeeklyConfiguration.DaysOfWeek, config.RecursEvery, firstDayOfWeek),
+            (nextDate) => {
                 var days = string.Join(", ", config.WeeklyConfiguration.DaysOfWeek);
                 var prefix = $"Occurs every {config.RecursEvery} week(s) on {days}. ";
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );
     }
+
 }

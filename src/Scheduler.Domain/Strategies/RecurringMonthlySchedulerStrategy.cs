@@ -16,14 +16,11 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc
-            , config
-            , timeZone
-            , 1
-            , (currentDay, startDay) => {
-                return MonthlyCalendarRule.IsValidDay(currentDay, startDay, config.RecursEvery, config.MonthlyConfiguration);
-            }
-            , (nextDate) => {
+            currentDateUtc,
+            config,
+            timeZone,
+            (fromDay, startDay) => MonthlyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery, config.MonthlyConfiguration),
+            (nextDate) => {
                 var prefix = BuildMonthlyDescription(config.MonthlyConfiguration, config.RecursEvery);
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
@@ -50,4 +47,5 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
             _ => dayType.ToString().ToLower()
         };
     }
+
 }

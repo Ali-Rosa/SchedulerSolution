@@ -20,4 +20,5 @@ public static class SchedulerEnvironmentValidator
             return (false, $"Invalid TimeZoneId: {config.TimeZoneId}", null);
         }
     }
+
 }

@@ -4,48 +4,56 @@ namespace Scheduler.Domain.Rules;
 
 public static class ScheduleEngine
 {
-    public static SchedulerResponse IterateAndCalculate (
+    public static SchedulerResponse IterateAndCalculate(
         DateTimeOffset currentDateUtc
         , SchedulerConfiguration config
         , TimeZoneInfo timeZone
-        , int maxOccurrences
-        , Func<DateOnly, DateOnly, bool> isDayValidLogic
+        , Func<DateOnly, DateOnly, DateOnly?> getNextValidDayLogic
         , Func<DateTimeOffset, string> buildDescriptionLogic
-        , int maxSearchDays = 1826 //safety parameter (5 years)
+        , int maxOccurrences = 1
     )
     {
         var results = new List<DateTimeOffset>();
         var currentLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
-        var seriesStartLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
+
+        // Corregimos el punto de anclaje de la serie para que sea la fecha de inicio de límites
+        // o en su defecto, el inicio de la evaluación actual.
+        var seriesStartLocal = config.LimitsStartDateLocal.HasValue
+            ? TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal.Value, timeZone)
+            : currentLocal;
+
         var seriesStartDay = DateOnly.FromDateTime(seriesStartLocal.DateTime);
         var anchorTime = seriesStartLocal.TimeOfDay;
 
-        var limitStartLocal = config.LimitsStartDateLocal.HasValue ? TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal.Value, timeZone) : seriesStartLocal;
+        var searchCursorLocal = currentLocal > seriesStartLocal ? currentLocal : seriesStartLocal;
+        var currentDay = DateOnly.FromDateTime(searchCursorLocal.DateTime);
 
-        var searchCursorLocal = currentLocal > limitStartLocal ? currentLocal : limitStartLocal;
-
-        for (int i = 0; i < maxSearchDays && results.Count < maxOccurrences; i++)
+        // Saltamos de fecha válida en fecha válida de forma directa.
+        while (results.Count < maxOccurrences)
         {
-            var currentDay = DateOnly.FromDateTime(searchCursorLocal.DateTime);
+            var nextValidDay = getNextValidDayLogic(currentDay, seriesStartDay);
 
-            if (isDayValidLogic(currentDay, seriesStartDay))
+            if (!nextValidDay.HasValue) break;
+
+            // Si el día calculado supera el límite final establecido, terminamos
+            if (config.LimitsEndDateLocal.HasValue)
             {
-                var executions = GetExecutionsForDay(currentDay, currentDateUtc, config, timeZone, anchorTime);
-
-                foreach (var execution in executions)
-                {
-                    if (results.Count < maxOccurrences) results.Add(execution);
-                }
+                var limitEndLocal = TimeZoneInfo.ConvertTime(config.LimitsEndDateLocal.Value, timeZone);
+                if (nextValidDay.Value > DateOnly.FromDateTime(limitEndLocal.DateTime)) break;
             }
 
-            if (config.LimitsEndDateLocal.HasValue && searchCursorLocal > config.LimitsEndDateLocal.Value)
-                break;
+            var executions = GetExecutionsForDay(nextValidDay.Value, currentDateUtc, config, timeZone, anchorTime);
 
-            searchCursorLocal = new DateTimeOffset(currentDay.AddDays(1).ToDateTime(TimeOnly.MinValue), timeZone.GetUtcOffset(searchCursorLocal.DateTime));
+            foreach (var execution in executions)
+            {
+                if (results.Count < maxOccurrences) results.Add(execution);
+            }
+
+            // Movemos el cursor al día siguiente del calculado para buscar la posterior ocurrencia
+            currentDay = nextValidDay.Value.AddDays(1);
         }
 
-        if (!results.Any())
-            return new SchedulerResponse("No valid executions found within the allowed range.");
+        if (results.Count == 0) return new SchedulerResponse("No valid executions found within the allowed range.");
 
         string description = buildDescriptionLogic(results.First());
 
@@ -54,8 +62,8 @@ public static class ScheduleEngine
 
     private static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
-        var allDayExecutions = (config.DailyFrequencyConfiguration != null) 
-            ? DailyFrequencyRule.GetExecutionsForDay(day, config.DailyFrequencyConfiguration, timeZone) 
+        var allDayExecutions = (config.DailyFrequencyConfiguration != null)
+            ? DailyFrequencyRule.GetExecutionsForDay(day, config.DailyFrequencyConfiguration, timeZone)
             : GenerateSingleExecution(day, config, timeZone, anchorTime);
 
         return allDayExecutions
@@ -67,11 +75,15 @@ public static class ScheduleEngine
 
     private static IEnumerable<DateTimeOffset> GenerateSingleExecution(DateOnly day, SchedulerConfiguration config, TimeZoneInfo timeZone, TimeSpan anchorTime)
     {
-        TimeSpan time;
+        var localDateTime = day.ToDateTime(TimeOnly.FromTimeSpan(anchorTime));
 
-        time = anchorTime; // Use the anchor time for recurring schedules
+        // Comprobamos si la hora local es inválida por la transición de primavera (Spring Forward)
+        if (timeZone.IsInvalidTime(localDateTime)) return Array.Empty<DateTimeOffset>();
 
-        var localDateTime = day.ToDateTime(TimeOnly.FromTimeSpan(time));
-        return new[] { new DateTimeOffset(localDateTime, timeZone.GetUtcOffset(localDateTime)) };
+        // Convertimos a UTC de forma segura
+        var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, timeZone);
+
+        return new[] { new DateTimeOffset(utcDateTime, TimeSpan.Zero) };
     }
+
 }

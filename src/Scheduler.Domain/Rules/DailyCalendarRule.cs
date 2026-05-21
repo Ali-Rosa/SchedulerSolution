@@ -2,14 +2,19 @@
 
 public static class DailyCalendarRule
 {
-    public static bool IsValidDay(DateOnly day, DateOnly startDate, int everyDays)
+    public static DateOnly GetNextValidDay(DateOnly fromDay, DateOnly startDate, int everyDays)
     {
-        int diff = day.DayNumber - startDate.DayNumber;
+        if (everyDays <= 0) everyDays = 1;
 
-        if (everyDays == 0) 
-            return diff == 0;
+        int diff = fromDay.DayNumber - startDate.DayNumber;
 
-        return diff >= 0 && diff % everyDays == 0;
+        // Si la fecha de consulta es anterior o igual al inicio, la primera ejecución es la de inicio
+        if (diff <= 0) return startDate;
+
+        // División entera con redondeo hacia arriba para saber cuántos intervalos de 'everyDays' 
+        // necesitamos añadir para alcanzar o superar a 'fromDay'
+        int intervals = (diff + everyDays - 1) / everyDays;
+
+        return startDate.AddDays(intervals * everyDays);
     }
-
 }

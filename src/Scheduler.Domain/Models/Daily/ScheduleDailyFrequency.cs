@@ -1,23 +1,26 @@
 ﻿namespace Scheduler.Domain.Models.Daily;
 
-public sealed record ScheduleDailyFrequency (
-    TimeOnly OnceTime,
-    bool OccursEveryEnable,
-    TimeIntervalUnit IntervalUnit,
-    int FrequencyInterval,
-    TimeOnly StartTime,
-    TimeOnly EndTime
-)
+public sealed record ScheduleDailyFrequency
 {
+    public TimeOnly OnceTime { get; init; }
+    public bool OccursEveryEnable { get; init; }
+    public TimeIntervalUnit IntervalUnit { get; init; }
+    public int FrequencyInterval { get; init; }
+    public TimeOnly StartTime { get; init; }
+    public TimeOnly EndTime { get; init; }
+
     public (bool IsValid, string Error) Validate()
     {
         if (OccursEveryEnable)
         {
-            if (!Enum.IsDefined(IntervalUnit)) return (false, "Not defined interval unit for daily frequency.");
+            if (!Enum.IsDefined(IntervalUnit))
+                return (false, "Not defined interval unit for daily frequency.");
 
-            if (FrequencyInterval <= 0) return (false, "The frequency interval must be greater than 0.");
+            if (FrequencyInterval <= 0)
+                return (false, "The frequency interval must be greater than 0.");
         }
 
         return (true, string.Empty);
     }
-};
+
+}
