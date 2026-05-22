@@ -53,7 +53,7 @@ public static class ScheduleEngine
             currentDay = nextValidDay.Value.AddDays(1);
         }
 
-        if (results.Count == 0) return new SchedulerResponse("No valid executions found within the allowed range.");
+        if (results.Count == 0) return new SchedulerResponse("No valid executions were found within the limits with this configuration.");
 
         string description = buildDescriptionLogic(results.First());
 

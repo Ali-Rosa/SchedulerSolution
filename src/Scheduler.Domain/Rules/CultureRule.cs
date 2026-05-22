@@ -30,5 +30,4 @@ public static class CultureRule
         // Safe method because it is called AFTER validation in the environment validator
         return new CultureInfo(locale);
     }
-
 }

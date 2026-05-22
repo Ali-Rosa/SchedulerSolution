@@ -2,9 +2,9 @@
 
 public static class DailyCalendarRule
 {
-    public static DateOnly GetNextValidDay(DateOnly fromDay, DateOnly startDate, int everyDays)
+    public static DateOnly? GetNextValidDay(DateOnly fromDay, DateOnly startDate, int everyDays)
     {
-        if (everyDays <= 0) everyDays = 1;
+        if (everyDays <= 0) return null;
 
         int diff = fromDay.DayNumber - startDate.DayNumber;
 
