@@ -1,4 +1,6 @@
-﻿namespace Scheduler.Domain.Models.Monthly;
+﻿using System.ComponentModel;
+
+namespace Scheduler.Domain.Models.Monthly;
 
 public enum MonthlyRelativeDayType
 {
@@ -10,9 +12,12 @@ public enum MonthlyRelativeDayType
     Thursday    = 4,
     Friday      = 5,
     Saturday    = 6,
-    // Special types
+
+    [Description("day")]
     Day         = 10,
+    [Description("weekday")]
     Weekday     = 11,
+    [Description("weekend day")]
     WeekendDay  = 12
 
 }

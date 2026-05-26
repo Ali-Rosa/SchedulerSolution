@@ -1,6 +1,8 @@
 ﻿using Scheduler.Domain.Models;
 using Scheduler.Domain.Models.Monthly;
 using Scheduler.Domain.Rules;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace Scheduler.Domain.Strategies;
 
@@ -8,7 +10,7 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
 {
     public StrategyKey Key => new(SchedulerType.Recurring, OccursType.Monthly);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
         if (config.MonthlyConfiguration == null)
             return new SchedulerResponse("Monthly configuration is required for Monthly recurring schedules.");
@@ -16,7 +18,6 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc,
             config,
             timeZone,
             (fromDay, startDay) => MonthlyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery, config.MonthlyConfiguration),
@@ -39,13 +40,12 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
 
     private static string FormatDayType(MonthlyRelativeDayType dayType)
     {
-        return dayType switch
+        FieldInfo? field = dayType.GetType().GetField(dayType.ToString());
+        if (field != null)
         {
-            MonthlyRelativeDayType.WeekendDay => "weekend day",
-            MonthlyRelativeDayType.Weekday => "weekday",
-            MonthlyRelativeDayType.Day => "day",
-            _ => dayType.ToString().ToLower()
-        };
+            var attribute = field.GetCustomAttribute<DescriptionAttribute>();
+            if (attribute != null) return attribute.Description; 
+        }
+        return dayType.ToString().ToLower();
     }
-
 }

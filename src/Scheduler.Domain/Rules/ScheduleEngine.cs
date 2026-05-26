@@ -5,8 +5,7 @@ namespace Scheduler.Domain.Rules;
 public static class ScheduleEngine
 {
     public static SchedulerResponse IterateAndCalculate(
-        DateTimeOffset currentDateUtc
-        , SchedulerConfiguration config
+         SchedulerConfiguration config
         , TimeZoneInfo timeZone
         , Func<DateOnly, DateOnly, DateOnly?> getNextValidDayLogic
         , Func<DateTimeOffset, string> buildDescriptionLogic
@@ -14,7 +13,7 @@ public static class ScheduleEngine
     )
     {
         var results = new List<DateTimeOffset>();
-        var currentLocal = TimeZoneInfo.ConvertTime(currentDateUtc, timeZone);
+        var currentLocal = TimeZoneInfo.ConvertTime(config.CurrentDate, timeZone);
 
         // Corregimos el punto de anclaje de la serie para que sea la fecha de inicio de límites
         // o en su defecto, el inicio de la evaluación actual.
@@ -40,9 +39,9 @@ public static class ScheduleEngine
             {
                 var limitEndLocal = TimeZoneInfo.ConvertTime(config.LimitsEndDateLocal.Value, timeZone);
                 if (nextValidDay.Value > DateOnly.FromDateTime(limitEndLocal.DateTime)) break;
-            }
+            }   
 
-            var executions = GetExecutionsForDay(nextValidDay.Value, currentDateUtc, config, timeZone, anchorTime);
+            var executions = GetExecutionsForDay(nextValidDay.Value, config.CurrentDate, config, timeZone, anchorTime);
 
             foreach (var execution in executions)
             {

@@ -6,10 +6,11 @@ namespace Scheduler.Domain.Models;
 
 public record SchedulerConfiguration
 {
+    public DateTimeOffset CurrentDate { get; init; }
     public bool Enabled { get; init; }
     public SchedulerType Type { get; init; }
-    public DateTimeOffset? ExecutionDateTimeLocal { get; init; }
     public OccursType Occurs { get; init; }
+    public DateTimeOffset? ExecutionDateTimeLocal { get; init; }
     public int RecursEvery { get; init; }
     public DateTimeOffset? LimitsStartDateLocal { get; init; }
     public DateTimeOffset? LimitsEndDateLocal { get; init; }
@@ -46,13 +47,32 @@ public record SchedulerConfiguration
 
         #region Object Values integrity validations
 
-        if (DailyFrequencyConfiguration?.Validate() is { IsValid: false } valDaily) return valDaily;
-        if (WeeklyConfiguration?.Validate() is { IsValid: false } valWeekly) return valWeekly;
-        if (MonthlyConfiguration?.Validate() is { IsValid: false } valMonthly) return valMonthly;
+        if (Type == SchedulerType.Recurring && DailyFrequencyConfiguration is not null)
+        {
+            if (DailyFrequencyConfiguration.Validate() is { IsValid: false } valDaily) 
+                return valDaily;
+        }
+
+        if (Type == SchedulerType.Recurring && Occurs == OccursType.Weekly)
+        {
+            if (WeeklyConfiguration is null)
+                return (false, "Weekly configuration is required for Weekly recurring schedules.");
+
+            if (WeeklyConfiguration.Validate() is { IsValid: false } valWeekly)
+                return valWeekly;
+        }
+
+        if (Type == SchedulerType.Recurring && Occurs == OccursType.Monthly)
+        {
+            if (MonthlyConfiguration is null)
+                return (false, "Monthly configuration is required for Monthly recurring schedules.");
+
+            if (MonthlyConfiguration.Validate() is { IsValid: false } valMonthly)
+                return valMonthly;
+        }
 
         #endregion Object Values integrity validations   
 
         return (true, string.Empty);
     }
-
 }

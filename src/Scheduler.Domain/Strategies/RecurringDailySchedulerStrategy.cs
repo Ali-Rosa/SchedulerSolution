@@ -7,20 +7,24 @@ public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
 {
     public StrategyKey Key => new(SchedulerType.Recurring, OccursType.Daily);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(
-            currentDateUtc,
             config,
             timeZone,
             (fromDay, startDay) => DailyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery),
             (nextDate) => {
-                var prefix = config.RecursEvery == 1 ? "Occurs every day. " : $"Occurs every {config.RecursEvery} days. ";
+                var prefix = BuildDailyDescription(config.RecursEvery);
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );
+    }
+
+    private static string BuildDailyDescription(int recursEvery)
+    {
+        return recursEvery == 1 ? "Occurs every day. " : $"Occurs every {recursEvery} days. ";
     }
 
 }

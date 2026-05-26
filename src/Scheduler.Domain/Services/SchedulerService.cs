@@ -10,7 +10,7 @@ public class SchedulerService
 
     public SchedulerService(IEnumerable<ISchedulerStrategy> strategies) => _strategies = strategies.ToDictionary(s => s.Key);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config)
+    public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config)
     {
         if (config is null) return new SchedulerResponse("The configuration cannot be null.");
 
@@ -24,8 +24,6 @@ public class SchedulerService
         if (!_strategies.TryGetValue(key, out var strategy))
             return new SchedulerResponse("Unsupported schedule and occurs combination.");
 
-        return strategy.CalculateNextExecution(currentDateUtc, config, timeZone!);
-
+        return strategy.CalculateNextExecution(config, timeZone!);
     }
-
 }
