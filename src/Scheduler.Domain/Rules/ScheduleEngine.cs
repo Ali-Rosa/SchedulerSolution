@@ -15,8 +15,6 @@ public static class ScheduleEngine
         var results = new List<DateTimeOffset>();
         var currentLocal = TimeZoneInfo.ConvertTime(config.CurrentDate, timeZone);
 
-        // Corregimos el punto de anclaje de la serie para que sea la fecha de inicio de límites
-        // o en su defecto, el inicio de la evaluación actual.
         var seriesStartLocal = config.LimitsStartDateLocal.HasValue
             ? TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal.Value, timeZone)
             : currentLocal;
@@ -27,14 +25,12 @@ public static class ScheduleEngine
         var searchCursorLocal = currentLocal > seriesStartLocal ? currentLocal : seriesStartLocal;
         var currentDay = DateOnly.FromDateTime(searchCursorLocal.DateTime);
 
-        // Saltamos de fecha válida en fecha válida de forma directa.
         while (results.Count < maxOccurrences)
         {
             var nextValidDay = getNextValidDayLogic(currentDay, seriesStartDay);
 
             if (!nextValidDay.HasValue) break;
 
-            // Si el día calculado supera el límite final establecido, terminamos
             if (config.LimitsEndDateLocal.HasValue)
             {
                 var limitEndLocal = TimeZoneInfo.ConvertTime(config.LimitsEndDateLocal.Value, timeZone);
@@ -48,7 +44,6 @@ public static class ScheduleEngine
                 if (results.Count < maxOccurrences) results.Add(execution);
             }
 
-            // Movemos el cursor al día siguiente del calculado para buscar la posterior ocurrencia
             currentDay = nextValidDay.Value.AddDays(1);
         }
 

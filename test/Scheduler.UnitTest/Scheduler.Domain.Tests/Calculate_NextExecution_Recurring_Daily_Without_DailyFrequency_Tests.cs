@@ -1,297 +1,261 @@
-﻿//using Scheduler.Domain.Models;
-//using Scheduler.Domain.Services;
-//using Scheduler.Domain.Strategies;
-//using Shouldly;
+﻿using Scheduler.Domain.Models;
+using Scheduler.Domain.Services;
+using Scheduler.Domain.Strategies;
+using Shouldly;
 
-//namespace Scheduler.Domain.Tests;
+namespace Scheduler.Domain.Tests;
 
-//public class Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Tests
-//{
-//    private readonly SchedulerService _service = new([new RecurringDailySchedulerStrategy()]);
+public class Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Tests
+{
+    private readonly SchedulerService _service = new([new RecurringDailySchedulerStrategy()]);
 
-//    #region Validation Tests
+    #region Validation Tests
+    #endregion Validation Tests
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Invalid_Culture_Should_Return_Support_Error()
-//    {
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero);
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "invalid-culture"
-//        };
+    #region Core Logic & Anchor Time
 
-//        var result = _service.CalculateNextExecution(currentDate, config);
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Anchor_Time_Should_Be_Inherited_And_Jump_To_Next_Day()
+    {
+        // Arrange: Request at 10:30 AM
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 10, 30, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 1, 10, 30, 0, TimeSpan.Zero),
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//        result.IsSuccess.ShouldBeFalse();
-//        result.ErrorMessage.ShouldContain("not supported by the system");
-//    }
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//    [Theory]
-//    [InlineData(0, "The Every value must be greater than 0.")]     // Arrested by the Strategy
-//    [InlineData(-1, "The Every value must be greater than 0.")]        // Stopped by the Validator
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_RecursEvery_Zero_Or_Less_Should_Be_Rejected(int invalidValue, string expectedError)
-//    {
-//        // Arrange
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = invalidValue,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+        // Assert: Tomorrow at 10:30 AM
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(2);
+        result.NextExecutionTime.Value.Hour.ShouldBe(10);
+        result.NextExecutionTime.Value.Minute.ShouldBe(30);
+        result.Description.ShouldContain("10:30");
+    }
 
-//        // Act
-//        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_ExecutionDateTimeLocal_Should_Be_Completely_Ignored()
+    {
+        // Arrange: 8 AM request, 11 PM configured (but should be ignored)
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 8, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 1, 8, 0, 0, TimeSpan.Zero).AddHours(15), // 11 PM, but should be ignored
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//        // Assert
-//        result.IsSuccess.ShouldBeFalse();
-//        result.ErrorMessage.ShouldBe(expectedError);
-//    }
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//    #endregion Validation Tests
+        // Assert: Tomorrow at 8 AM
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(2);
+        result.NextExecutionTime.Value.Hour.ShouldBe(8);
+    }
 
-//    #region Core Logic & Anchor Time
+    #endregion Core Logic & Anchor Time
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Anchor_Time_Should_Be_Inherited_And_Jump_To_Next_Day()
-//    {
-//        // Arrange: Request at 10:30 AM
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 10, 30, 0, TimeSpan.Zero);
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            ExecutionDateTimeLocal = currentDate,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+    #region Day Skipping (RecursEvery)
 
-//        // Act
-//        var result = _service.CalculateNextExecution(currentDate, config);
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Pattern_Should_Skip_Days_According_To_Recursion_Value()
+    {
+        // Arrange: Day 01 + every 3 days = Day 04
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 12, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 3,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//        // Assert: Tomorrow at 10:30 AM
-//        result.IsSuccess.ShouldBeTrue();
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Day.ShouldBe(2);
-//        result.NextExecutionTime.Value.Hour.ShouldBe(10);
-//        result.NextExecutionTime.Value.Minute.ShouldBe(30);
-//        result.Description.ShouldContain("10:30");
-//    }
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_ExecutionDateTimeLocal_Should_Be_Completely_Ignored()
-//    {
-//        // Arrange: 8 AM request, 11 PM configured (but should be ignored)
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 8, 0, 0, TimeSpan.Zero);
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            ExecutionDateTimeLocal = currentDate.AddHours(15), // 11 PM, but should be ignored
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+        // Assert
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(4);
+        result.NextExecutionTime.Value.Hour.ShouldBe(12);
+    }
 
-//        // Act
-//        var result = _service.CalculateNextExecution(currentDate, config);
+    #endregion Day Skipping (RecursEvery)
 
-//        // Assert: Tomorrow at 8 AM
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Day.ShouldBe(2);
-//        result.NextExecutionTime.Value.Hour.ShouldBe(8);
-//    }
+    #region FirstDayOfWeek Invariance
 
-//    #endregion Core Logic & Anchor Time
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_FirstDayOfWeek_Configuration_Should_Not_Affect_Daily_Calculations_NO_DETERMINISTA()
+    {
+        // Arrange: The daily strategy should not change if the week starts on Monday or Sunday
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//    #region Day Skipping (RecursEvery)
+        // Act
+        var resMonday = _service.CalculateNextExecution(config with { FirstDayOfWeek = DayOfWeek.Monday });
+        var resSunday = _service.CalculateNextExecution(config with { FirstDayOfWeek = DayOfWeek.Sunday });
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Pattern_Should_Skip_Days_According_To_Recursion_Value()
-//    {
-//        // Arrange: Day 01 + every 3 days = Day 04
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 12, 0, 0, TimeSpan.Zero);
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 3,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+        // Assert
+        resMonday.NextExecutionTime.ShouldBe(resSunday.NextExecutionTime);
+    }
 
-//        // Act
-//        var result = _service.CalculateNextExecution(currentDate, config);
+    #endregion FirstDayOfWeek Invariance
 
-//        // Assert
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Day.ShouldBe(4);
-//        result.NextExecutionTime.Value.Hour.ShouldBe(12);
-//    }
+    #region Calendar Edge Cases
 
-//    #endregion Day Skipping (RecursEvery)
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Month_And_Year_Transitions_Should_Work_Seamlessly()
+    {
+        // Arrange: 31 Dec -> 1 Jan
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2025, 12, 31, 22, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//    #region FirstDayOfWeek Invariance
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_FirstDayOfWeek_Configuration_Should_Not_Affect_Daily_Calculations_NO_DETERMINISTA()
-//    {
-//        // The daily strategy should not change if the week starts on Monday or Sunday
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
+        // Assert
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Year.ShouldBe(2026);
+        result.NextExecutionTime.Value.Month.ShouldBe(1);
+        result.NextExecutionTime.Value.Day.ShouldBe(1);
+    }
 
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Leap_Year_February_29_Should_Be_Handled()
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2024, 2, 28, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//        var resMonday = _service.CalculateNextExecution(currentDate, config with { FirstDayOfWeek = DayOfWeek.Monday });
-//        var resSunday = _service.CalculateNextExecution(currentDate, config with { FirstDayOfWeek = DayOfWeek.Sunday });
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//        resMonday.NextExecutionTime.ShouldBe(resSunday.NextExecutionTime);
-//    }
+        // Assert
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Month.ShouldBe(2);
+        result.NextExecutionTime.Value.Day.ShouldBe(29);
+    }
 
-//    #endregion FirstDayOfWeek Invariance
+    #endregion Calendar Edge Cases
 
-//    #region Calendar Edge Cases
+    #region Localization & Description (Using Theories)
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Month_And_Year_Transitions_Should_Work_Seamlessly()
-//    {
-//        // 31 Dec -> 1 Jan
-//        var currentDate = new DateTimeOffset(2025, 12, 31, 22, 0, 0, TimeSpan.Zero);
+    [Theory]
+    [InlineData(1, "Occurs every day")]
+    [InlineData(3, "Occurs every 3 days")]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Description_Prefix_Should_Reflect_Recursion_Interval(int every, string expectedPrefix)
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = DateTimeOffset.UtcNow,
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = every,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
         
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+        // Assert
+        result.Description.ShouldContain(expectedPrefix);
+    }
 
-//        var result = _service.CalculateNextExecution(currentDate, config);
+    #endregion Localization & Description (Using Theories)
 
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Year.ShouldBe(2026);
-//        result.NextExecutionTime.Value.Month.ShouldBe(1);
-//        result.NextExecutionTime.Value.Day.ShouldBe(1);
-//    }
+    #region Limits & Safety
 
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Leap_Year_February_29_Should_Be_Handled()
-//    {
-//        var currentDate = new DateTimeOffset(2024, 2, 28, 10, 0, 0, TimeSpan.Zero);
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Future_StartDateLimit_Should_Be_Respected_With_Anchor_Time()
+    {
+        // Arrange: Request on day 01 at 10 AM. Limit on day 10.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            LimitsStartDateLocal = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero).AddDays(9),
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
 
-//        var result = _service.CalculateNextExecution(currentDate, config);
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Month.ShouldBe(2);
-//        result.NextExecutionTime.Value.Day.ShouldBe(29);
-//    }
+        // Assert
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Day.ShouldBe(10);
+        result.NextExecutionTime.Value.Hour.ShouldBe(10);
+    }
 
-//    #endregion Calendar Edge Cases
+    [Fact]
+    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_EndDate_Reached_Should_Stop_Motor_And_Return_Failure()
+    {
+        // Arrange: Today is day 01. Every 10 days (next is day 11). Limit is day 05.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 10,
+            LimitsEndDateLocal = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero).AddDays(4),
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US"
+        };
+        
+        // Act
+        var result = _service.CalculateNextExecution(config);
 
-//    #region Localization & Description (Using Theories)
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("No valid executions were found within the limits with this configuration.");
+    }
 
-//    [Theory]
-//    [InlineData(1, "Occurs every day")]
-//    [InlineData(3, "Occurs every 3 days")]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Description_Prefix_Should_Reflect_Recursion_Interval(int every, string expectedPrefix)
-//    {
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = every,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
+    #endregion Limits & Safety
 
-//        var result = _service.CalculateNextExecution(DateTimeOffset.UtcNow, config);
-
-//        result.Description.ShouldContain(expectedPrefix);
-//    }
-
-//    #endregion Localization & Description (Using Theories)
-
-//    #region Limits & Safety
-
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Future_StartDateLimit_Should_Be_Respected_With_Anchor_Time()
-//    {
-//        // Request on day 01 at 10 AM. Limit on day 10.
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 10, 0, 0, TimeSpan.Zero);
-//        var startLimit = currentDate.AddDays(9); // Day 10
-
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 1,
-//            LimitsStartDateLocal = startLimit,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
-
-//        var result = _service.CalculateNextExecution(currentDate, config);
-
-//        result.NextExecutionTime.ShouldNotBeNull();
-//        result.NextExecutionTime.Value.Day.ShouldBe(10);
-//        result.NextExecutionTime.Value.Hour.ShouldBe(10);
-//    }
-
-//    [Fact]
-//    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_EndDate_Reached_Should_Stop_Motor_And_Return_Failure()
-//    {
-//        // Today is day 01. Every 10 days (next is day 11). Limit is day 05.
-//        var currentDate = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero);
-//        var endLimit = currentDate.AddDays(4);
-
-//        SchedulerConfiguration config = new()
-//        {
-//            Enabled = true,
-//            Type = SchedulerType.Recurring,
-//            Occurs = OccursType.Daily,
-//            RecursEvery = 10,
-//            LimitsEndDateLocal = endLimit,
-//            TimeZoneId = TimeZoneInfo.Utc.Id,
-//            Locale = "en-US"
-//        };
-
-//        var result = _service.CalculateNextExecution(currentDate, config);
-
-//        result.IsSuccess.ShouldBeFalse();
-//        result.ErrorMessage.ShouldContain("No valid executions were found within the limits with this configuration.");
-//    }
-
-//    #endregion Limits & Safety
-
-//}
+}

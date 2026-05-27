@@ -4,11 +4,6 @@ public static class WeeklyCalendarRule
 {
     public static DateOnly? GetNextValidDay(DateOnly fromDay, DateOnly startDate, IReadOnlyCollection<DayOfWeek> daysOfWeek, int everyWeeks, DayOfWeek firstDayOfWeek)
     {
-        if (daysOfWeek == null || !daysOfWeek.Any())
-            return null;
-
-        if (everyWeeks <= 0) everyWeeks = 1; // regla de negocio ya colocada en el Aggregate root
-
         int fromWeek = GetWeekIndex(fromDay, firstDayOfWeek);
         int startWeek = GetWeekIndex(startDate, firstDayOfWeek);
 
@@ -23,7 +18,7 @@ public static class WeeklyCalendarRule
 
         while (true)
         {
-            // Corrección: Calculamos el inicio real de la semana aplicando el desplazamiento del firstDayOfWeek
+            // Calculamos el inicio real de la semana aplicando el desplazamiento del firstDayOfWeek
             int dayOffset = ((int)firstDayOfWeek - 1 + 7) % 7;
             var weekStart = DateOnly.FromDayNumber(targetWeekIndex * 7 + dayOffset);
 

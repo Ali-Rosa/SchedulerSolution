@@ -20,10 +20,10 @@ public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
         }
 
         if (config.LimitsStartDateLocal.HasValue && candidate < config.LimitsStartDateLocal.Value)
-            return new SchedulerResponse("The execution date is outside the allowed range.");
+            return new SchedulerResponse("The selected execution date is earlier than the allowed start limit date.");
 
         if (config.LimitsEndDateLocal.HasValue && candidate > config.LimitsEndDateLocal.Value)
-            return new SchedulerResponse("The execution date is outside the allowed range.");
+            return new SchedulerResponse("The selected execution date is later than the allowed end limit date.");
 
         DateTimeOffset candidateLocalTime = TimeZoneInfo.ConvertTime(candidate, timeZone);
 

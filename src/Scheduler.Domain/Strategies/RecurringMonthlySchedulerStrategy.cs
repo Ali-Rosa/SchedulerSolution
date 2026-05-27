@@ -12,9 +12,6 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
 
     public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        if (config.MonthlyConfiguration == null)
-            return new SchedulerResponse("Monthly configuration is required for Monthly recurring schedules.");
-
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
         return ScheduleEngine.IterateAndCalculate(

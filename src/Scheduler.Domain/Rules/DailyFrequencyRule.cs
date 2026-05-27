@@ -6,7 +6,6 @@ public static class DailyFrequencyRule
 {
     public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrequency schedule, TimeZoneInfo timeZone)
     {
-        // Recurrent intra-day execution (OccursEveryEnable)
         if (schedule.OccursEveryEnable)
         {
             var start = day.ToDateTime(schedule.StartTime);
@@ -29,14 +28,14 @@ public static class DailyFrequencyRule
                 };
             }
         }
-        else // Single execution in the day (OccursOnceEnable)
+        else
         {
             var dt = day.ToDateTime(schedule.OnceTime);
             if (!timeZone.IsInvalidTime(dt))
             {
                 yield return TimeZoneInfo.ConvertTimeToUtc(dt, timeZone);
             }
-            yield break; // End here if it's a single execution
+            yield break;
         }
     }
 }

@@ -12,8 +12,7 @@ public static class MonthlyCalendarRule
         int diffMonths = ((fromDay.Year - startDate.Year) * 12) + fromDay.Month - startDate.Month;
 
         int targetMonthOffset;
-        if (diffMonths <= 0) 
-            targetMonthOffset = 0;
+        if (diffMonths <= 0) targetMonthOffset = 0;
         else
         {
             // Redondeo hacia arriba para encontrar el mes múltiplo de 'everyMonths'

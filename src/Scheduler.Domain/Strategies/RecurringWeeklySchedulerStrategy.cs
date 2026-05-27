@@ -10,9 +10,6 @@ public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
 
     public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        if (config.WeeklyConfiguration is null)
-            return new SchedulerResponse("Weekly configuration is required for Weekly recurring schedules.");
-
         var firstDayOfWeek = CultureRule.GetFirstDayOfWeek(config);
         var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
 
