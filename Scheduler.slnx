@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="../../../../Documents/Ejercicio Scheduler/Ejercicio Scheduler Part 1.pdf" />
+    <File Path="../../../../Documents/Ejercicio Scheduler/Ejercicio Scheduler Part 2.pdf" />
+    <File Path="../../../../Documents/Ejercicio Scheduler/Ejercicio Scheduler Part 3.pdf" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Scheduler.Domain/Scheduler.Domain.csproj" />
   </Folder>

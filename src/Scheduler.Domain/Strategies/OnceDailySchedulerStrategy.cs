@@ -45,5 +45,4 @@ public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
 
         return description;
     }
-
 }

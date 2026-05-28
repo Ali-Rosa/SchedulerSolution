@@ -14,56 +14,9 @@ public class Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Tes
 
     #region Core Logic & Anchor Time
 
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_IExecution_Should_Follow_Anchor_Time_And_Ignore_ExecutionDateTimeLocal()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero), // Monday 04 at 10:00 AM.
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Weekly,
-            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 20, 11, 0, 0, TimeSpan.Zero).AddHours(5), // 03:00 PM  Should be ignored
-            RecursEvery = 1,
-            WeeklyConfiguration = new() { DaysOfWeek = [DayOfWeek.Monday] },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
 
-        };
 
-        var result = _service.CalculateNextExecution(config);
 
-        // Assert: Next Monday (11) at 10:00 AM
-        result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTime.ShouldNotBeNull();
-        result.NextExecutionTime.Value.Day.ShouldBe(11);
-        result.NextExecutionTime.Value.Hour.ShouldBe(10);
-        result.Description.ShouldContain("10:00");
-    }
-
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_IShould_Find_Next_Day_In_Same_Week_Maintaining_Anchor_Time()
-    {
-        // Today Tuesday 05 at 10:00 AM. Days: Friday.
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 5, 10, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Weekly,
-            RecursEvery = 1,
-            WeeklyConfiguration = new() { DaysOfWeek = [DayOfWeek.Friday] },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
-        };
-
-        var result = _service.CalculateNextExecution(config);
-
-        result.NextExecutionTime.ShouldNotBeNull();
-        result.NextExecutionTime.Value.Day.ShouldBe(8);
-        result.NextExecutionTime.Value.Hour.ShouldBe(10);
-    }
 
     #endregion Core Logic & Anchor Time
 

@@ -6,7 +6,7 @@ using Shouldly;
 
 namespace Scheduler.Domain.Tests;
 
-public class Calculate_NextExecution_GeneralsValidations_Tests
+public class CalculateNextExecution_ValidationTests
 {
     private readonly SchedulerService _service = new([
         new OnceDailySchedulerStrategy(),
@@ -15,8 +15,10 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         new RecurringMonthlySchedulerStrategy()
     ]);
 
+    #region General validations
+
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_With_Null_Config_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenConfigIsNull_ReturnsError()
     {
         // Act
         var result = _service.CalculateNextExecution(null!);
@@ -28,7 +30,7 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithSchedulerConfigurationDisabled_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenSchedulerIsDisabled_ReturnsError()
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -52,14 +54,14 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithUndefinedSchedulerType_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenSchedulerTypeIsInvalid_ReturnsError()
     {
         // Arrange
         SchedulerConfiguration config = new()
         {
             CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
             Enabled = true,
-            Type = (SchedulerType)999,
+            Type = (SchedulerType)1981,
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = TimeZoneInfo.Utc.Id,
@@ -76,7 +78,7 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithUndefinedOccursType_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenOccursTypeIsInvalid_ReturnsError()
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -99,34 +101,10 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.ErrorMessage.ShouldBe("Not defined occurs type.");
     }
 
-    [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithRecursEveryLessThanOrEqualToZero_ShouldBeReturnsError()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Daily,
-            RecursEvery = 0,
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldStartWith("The Every value must be greater than 0.");
-    }
-
     [Theory]
     [InlineData(0, "The Every value must be greater than 0.")]
     [InlineData(-1, "The Every value must be greater than 0.")]
-    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_RecursEvery_Zero_Or_Less_Should_Be_Rejected(int invalidValue, string expectedError)
+    public void CalculateNextExecution_WhenRecursEveryIsZeroOrLess_ReturnsError(int invalidValue, string expectedError)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -148,10 +126,8 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.ErrorMessage.ShouldBe(expectedError);
     }
 
-
-
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_LimitsStartDateAfterLimitsEndDate_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenLimitsStartDateIsAfterEndDate_ReturnsError()
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -176,8 +152,10 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.ErrorMessage.ShouldBe("Within the limits, the start date cannot be later than the end date.");
     }
 
-    [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithNullOrEmptyTimeZone_ShouldBeReturnsError()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void CalculateNextExecution_WhenTimeZoneIdIsNullOrEmpty_ReturnsError(string? invalidTimeZoneId)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -187,7 +165,7 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
             Type = SchedulerType.Recurring,
             Occurs = OccursType.Daily,
             RecursEvery = 1,
-            TimeZoneId = null!,
+            TimeZoneId = invalidTimeZoneId!,
             Locale = "en-US",
         };
 
@@ -201,62 +179,7 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithNullOrEmptyLocale_ShouldBeReturnsError()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Daily,
-            RecursEvery = 1,
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = null!,
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldStartWith("The Locale is required.");
-    }
-
-    [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithUndefinedFirstDayOfWeek_ShouldBeReturnsError()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Weekly,
-            RecursEvery = 1,
-            FirstDayOfWeek = (DayOfWeek)999,
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("The provided FirstDayOfWeek is not a valid day of the week.");
-    }
-
-
-
-
-
-    ////////////////////////////////////////////////////////////////////////
-
-    [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WithInvalidTimeZone_ShouldBeReturnsError()
+    public void CalculateNextExecution_WhenTimeZoneIdIsInvalid_ReturnsError()
     {
         // Arrange
 
@@ -280,8 +203,34 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.ErrorMessage.ShouldStartWith("Invalid TimeZoneId");
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void CalculateNextExecution_WhenLocaleIsNullOrEmpty_ReturnsError(string? invalidLocale)
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = invalidLocale!,
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldStartWith("The Locale is required.");
+    }
+
     [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_Without_DailyFrequency_Invalid_Culture_Should_Return_Support_Error()
+    public void CalculateNextExecution_WhenLocaleIsNotSupported_ReturnsError()
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -304,10 +253,34 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
     }
 
     [Fact]
-    public void CalculateNextExecution_GeneralsValidations_WhenStrategyCombinationIsNotRegistered_ShouldBeReturnsUnsupportedCombinationError()
+    public void CalculateNextExecution_WhenFirstDayOfWeekIsInvalid_ReturnsError()
     {
         // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Weekly,
+            RecursEvery = 1,
+            FirstDayOfWeek = (DayOfWeek)1981,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
 
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldBe("The provided FirstDayOfWeek is not a valid day of the week.");
+    }
+
+    [Fact]
+    public void CalculateNextExecution_WhenNoStrategyMatchesConfiguration_ReturnsError()
+    {
+        // Arrange
         var schedulerService = new SchedulerService(new ISchedulerStrategy[]
         {
             new RecurringDailySchedulerStrategy()
@@ -332,6 +305,61 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.NextExecutionTime.ShouldBeNull();
         result.ErrorMessage.ShouldBe("Unsupported schedule and occurs combination.");
     }
+
+    [Fact]
+    public void CalculateNextExecution_WhenWeeklyConfigurationIsMissing_ReturnsError()
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Weekly,
+            RecursEvery = 1,
+            WeeklyConfiguration = null,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldBe("Weekly configuration is required for Weekly recurring schedules.");
+    }
+
+    [Fact]
+    public void CalculateNextExecution_WhenMonthlyConfigurationIsMissing_ReturnsError()
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 1,
+            MonthlyConfiguration = null,
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.ErrorMessage.ShouldBe("Monthly configuration is required for Monthly recurring schedules.");
+    }
+
+
+    #endregion General validations
+
+    #region Specific validations for the Recurring_Daily strategy
 
 
     ///// Validaciones de Integridad para Daily frecuency configuration
@@ -445,6 +473,6 @@ public class Calculate_NextExecution_GeneralsValidations_Tests
         result.ErrorMessage.ShouldBe("Weekly configuration requires at least one day.");
     }
 
-
+    #endregion Specific validations for the Recurring_Daily strategy
 
 }

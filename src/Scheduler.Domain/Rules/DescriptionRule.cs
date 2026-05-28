@@ -10,7 +10,7 @@ public static class DescriptionRule
         var local = TimeZoneInfo.ConvertTime(nextExecution, timeZone);
         var desc = prefix;
 
-        if (config.DailyFrequencyConfiguration != null)
+        if (config.DailyFrequencyConfiguration != null && config.DailyFrequencyConfiguration.OccursEveryEnable)
         {
             desc += $"Every {config.DailyFrequencyConfiguration.FrequencyInterval} {config.DailyFrequencyConfiguration.IntervalUnit.ToString().ToLower()} ";
         }
@@ -19,5 +19,4 @@ public static class DescriptionRule
 
         return desc;
     }
-
 }
