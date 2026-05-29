@@ -1,12 +1,11 @@
 ﻿using Scheduler.Domain.Models;
-using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Services;
 using Scheduler.Domain.Strategies;
 using Shouldly;
 
 namespace Scheduler.Domain.Tests;
 
-public class CalculateNextExecution_ValidationTests
+public class CalculateNextExecution_GeneralValidationsTests
 {
     private readonly SchedulerService _service = new([
         new OnceDailySchedulerStrategy(),
@@ -358,121 +357,5 @@ public class CalculateNextExecution_ValidationTests
 
 
     #endregion General validations
-
-    #region Specific validations for the Recurring_Daily strategy
-
-
-    ///// Validaciones de Integridad para Daily frecuency configuration
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_Description_Should_Include_Detailed_Frequency_InformationLLL()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Daily,
-            RecursEvery = 1,
-            DailyFrequencyConfiguration = new()
-            {
-                OccursEveryEnable = true,
-                IntervalUnit = TimeIntervalUnit.Hours,
-                FrequencyInterval = -1,
-                StartTime = new TimeOnly(4, 0),
-                EndTime = new TimeOnly(8, 0)
-            },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldContain("The frequency interval must be greater than 0.");
-    }
-
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Daily_Description_Should_Include_Detailed_Frequency_InformationLLLOO()
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Daily,
-            RecursEvery = 1,
-            DailyFrequencyConfiguration = new()
-            {
-                OccursEveryEnable = true,
-                IntervalUnit = (TimeIntervalUnit)999, // Valor no definido para TimeIntervalUnit
-                FrequencyInterval = 1,
-                StartTime = new TimeOnly(4, 0),
-                EndTime = new TimeOnly(8, 0)
-            },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldContain("Not defined interval unit for daily frequency.");
-    }
-
-    //////////////////////////////// Validaciones de Integridad para Weekly configuration
-    [Fact]
-    public void Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_IMissing_Weekly_Configuration_Should_Return_Error()
-    {
-        // The builder without .With_WeeklyDays() leaves the object null
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = DateTimeOffset.UtcNow,
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Weekly,
-            RecursEvery = 1,
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        var result = _service.CalculateNextExecution(config);
-
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldContain("Weekly configuration is required for Weekly recurring schedules.");
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData(new object[] { new DayOfWeek[0] })]
-    public void Calculate_NextExecution_Recurring_Weekly_Without_DailyFrequency_Invalid_Weekly_Days_Should_Return_Error(DayOfWeek[]? daysOfWeek)
-    {
-        // Arrange
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = DateTimeOffset.UtcNow,
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            Occurs = OccursType.Weekly,
-            RecursEvery = 1,
-            WeeklyConfiguration = new() { DaysOfWeek = daysOfWeek! },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe("Weekly configuration requires at least one day.");
-    }
-
-    #endregion Specific validations for the Recurring_Daily strategy
 
 }

@@ -16,9 +16,9 @@ public sealed class RecurringWeeklySchedulerStrategy : ISchedulerStrategy
         return ScheduleEngine.IterateAndCalculate(
             config,
             timeZone,
-            (fromDay, startDay) => WeeklyCalendarRule.GetNextValidDay(fromDay, startDay, config.WeeklyConfiguration.DaysOfWeek, config.RecursEvery, firstDayOfWeek),
+            (fromDay, startDay) => WeeklyCalendarRule.GetNextValidDay(fromDay, startDay, config.WeeklyConfiguration!.DaysOfWeek, config.RecursEvery, firstDayOfWeek),
             (nextDate) => {
-                var prefix = BuildWeeklyDescription(config.WeeklyConfiguration, config.RecursEvery);
+                var prefix = BuildWeeklyDescription(config.WeeklyConfiguration!, config.RecursEvery);
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );

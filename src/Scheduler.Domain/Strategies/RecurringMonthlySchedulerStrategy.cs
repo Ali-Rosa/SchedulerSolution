@@ -17,9 +17,9 @@ public sealed class RecurringMonthlySchedulerStrategy : ISchedulerStrategy
         return ScheduleEngine.IterateAndCalculate(
             config,
             timeZone,
-            (fromDay, startDay) => MonthlyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery, config.MonthlyConfiguration),
+            (fromDay, startDay) => MonthlyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery, config.MonthlyConfiguration!),
             (nextDate) => {
-                var prefix = BuildMonthlyDescription(config.MonthlyConfiguration, config.RecursEvery);
+                var prefix = BuildMonthlyDescription(config.MonthlyConfiguration!, config.RecursEvery);
                 return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
             }
         );

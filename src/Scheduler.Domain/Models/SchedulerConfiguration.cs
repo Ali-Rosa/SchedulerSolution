@@ -17,6 +17,7 @@ public record SchedulerConfiguration
     public string TimeZoneId { get; init; } = string.Empty;
     public string Locale { get; init; } = string.Empty;
     public DayOfWeek? FirstDayOfWeek { get; init; } = null;
+    public int MaxOccurrences { get; init; } = 1;
     public ScheduleDailyFrequency? DailyFrequencyConfiguration { get; init; } = null;
     public SchedulerWeekly? WeeklyConfiguration { get; init; } = null;
     public SchedulerMonthly? MonthlyConfiguration { get; init; } = null;

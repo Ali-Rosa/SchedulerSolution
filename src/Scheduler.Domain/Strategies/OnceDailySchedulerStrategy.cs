@@ -13,7 +13,7 @@ public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
         if (config.ExecutionDateTimeLocal.HasValue)
         {
             if (candidate > config.ExecutionDateTimeLocal.Value)
-                return new SchedulerResponse("DateTime cannot be less than CurrentDate.");
+                return new SchedulerResponse("The execution date cannot be in the past relative to the current date.");
 
             if (candidate < config.ExecutionDateTimeLocal.Value)
                 candidate = config.ExecutionDateTimeLocal.Value;

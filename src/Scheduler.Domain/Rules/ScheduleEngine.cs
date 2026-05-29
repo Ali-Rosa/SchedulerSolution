@@ -9,7 +9,6 @@ public static class ScheduleEngine
         , TimeZoneInfo timeZone
         , Func<DateOnly, DateOnly, DateOnly?> getNextValidDayLogic
         , Func<DateTimeOffset, string> buildDescriptionLogic
-        , int maxOccurrences = 1
     )
     {
         var results = new List<DateTimeOffset>();
@@ -25,7 +24,7 @@ public static class ScheduleEngine
         var searchCursorLocal = currentLocal > seriesStartLocal ? currentLocal : seriesStartLocal;
         var currentDay = DateOnly.FromDateTime(searchCursorLocal.DateTime);
 
-        while (results.Count < maxOccurrences)
+        while (results.Count < config.MaxOccurrences)
         {
             var nextValidDay = getNextValidDayLogic(currentDay, seriesStartDay);
 
@@ -41,7 +40,7 @@ public static class ScheduleEngine
 
             foreach (var execution in executions)
             {
-                if (results.Count < maxOccurrences) results.Add(execution);
+                if (results.Count < config.MaxOccurrences) results.Add(execution);
             }
 
             currentDay = nextValidDay.Value.AddDays(1);

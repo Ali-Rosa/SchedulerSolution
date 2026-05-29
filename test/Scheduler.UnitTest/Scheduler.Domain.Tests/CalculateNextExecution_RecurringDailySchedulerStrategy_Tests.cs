@@ -10,6 +10,72 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 {
     private readonly SchedulerService _service = new([new RecurringDailySchedulerStrategy()]);
 
+    #region Specific validations for strategy
+
+    [Fact]
+    public void CalculateNextExecution_WhenDailyFrequencyIntervalIsNegative_ReturnsValidationError()
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = TimeIntervalUnit.Hours,
+                FrequencyInterval = -1,
+                StartTime = new TimeOnly(4, 0),
+                EndTime = new TimeOnly(8, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("The frequency interval must be greater than 0.");
+    }
+
+    [Fact]
+    public void CalculateNextExecution_WhenDailyFrequencyIntervalUnitIsUndefined_ReturnsValidationError()
+    {
+        // Arrange
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 6, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 1,
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = (TimeIntervalUnit)1981, // Valor no definido para TimeIntervalUnit
+                FrequencyInterval = 1,
+                StartTime = new TimeOnly(4, 0),
+                EndTime = new TimeOnly(8, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.ErrorMessage.ShouldContain("Not defined interval unit for daily frequency.");
+    }
+
+    #endregion Specific validations for strategy
+
     #region Mode Selection (Once vs Every)
 
     [Fact]
@@ -239,41 +305,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
     #region Limits Handling
 
-    [Theory]
-    [InlineData(TimeIntervalUnit.Minutes, 15, 12, 15)]
-    [InlineData(TimeIntervalUnit.Seconds, 20, 12, 0, 20)]
-    public void CalculateNextExecution_WhenOccursEveryWithSmallUnits_ReturnsCorrectExecution(TimeIntervalUnit unit, int interval, int h, int m, int s = 0)
-    {
-        // Arrange: 12:00:00 exact.
-        SchedulerConfiguration config = new()
-        {
-            CurrentDate = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero),
-            Enabled = true,
-            Type = SchedulerType.Recurring,
-            RecursEvery = 1,
-            Occurs = OccursType.Daily,
-            DailyFrequencyConfiguration = new()
-            {
-                OccursEveryEnable = true,
-                IntervalUnit = unit,
-                FrequencyInterval = interval,
-                StartTime = new TimeOnly(12, 0, 0),
-                EndTime = new TimeOnly(13, 0, 0)
-            },
-            TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
-        };
-
-        // Act
-        var result = _service.CalculateNextExecution(config);
-
-        // Assert
-        result.NextExecutionTime.ShouldNotBeNull();
-        result.NextExecutionTime.Value.Hour.ShouldBe(h);
-        result.NextExecutionTime.Value.Minute.ShouldBe(m);
-        result.NextExecutionTime.Value.Second.ShouldBe(s);
-    }
-
     [Fact]
     public void CalculateNextExecution_WhenStartLimitIsInFuture_AdjustsExecutionCorrectly()
     {
@@ -411,6 +442,42 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     #endregion Edge Cases & Boundaries
 
     #region Time Units Handling
+
+    [Theory]
+    [InlineData(TimeIntervalUnit.Minutes, 15, 12, 15)]
+    [InlineData(TimeIntervalUnit.Seconds, 20, 12, 0, 20)]
+    public void CalculateNextExecution_WhenOccursEveryWithSmallUnits_ReturnsCorrectExecution(TimeIntervalUnit unit, int interval, int h, int m, int s = 0)
+    {
+        // Arrange: 12:00:00 exact.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 6, 12, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            RecursEvery = 1,
+            Occurs = OccursType.Daily,
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = unit,
+                FrequencyInterval = interval,
+                StartTime = new TimeOnly(12, 0, 0),
+                EndTime = new TimeOnly(13, 0, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.NextExecutionTime.ShouldNotBeNull();
+        result.NextExecutionTime.Value.Hour.ShouldBe(h);
+        result.NextExecutionTime.Value.Minute.ShouldBe(m);
+        result.NextExecutionTime.Value.Second.ShouldBe(s);
+    }
+
     #endregion Time Units Handling
 
     #region Description & Localization
@@ -523,5 +590,56 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     }
 
     #endregion Logical Consistency
+
+    [Fact]
+    public void Calculate_NextExecution_RecurringDaily_Should_Return_Sequence_In_Single_Call()
+    {
+        // Arrange - Configuración basada en el ejemplo de la Parte 2 (página 1):
+        // Ocurre cada 2 días, frecuencia diaria cada 2 horas de 4:00 a 8:00, iniciando el 01/01/2020.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Daily,
+            RecursEvery = 2,
+            MaxOccurrences = 6, // <--- Aquí solicitamos la secuencia de 6 fechas
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = TimeIntervalUnit.Hours,
+                FrequencyInterval = 2,
+                StartTime = new TimeOnly(4, 0),
+                EndTime = new TimeOnly(8, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = "en-US",
+            LimitsStartDateLocal = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero)
+        };
+
+        // Secuencia de salida esperada según la especificación
+        var expectedSequence = new List<DateTimeOffset>
+    {
+        new(2020, 1, 1, 4, 0, 0, TimeSpan.Zero),
+        new(2020, 1, 1, 6, 0, 0, TimeSpan.Zero),
+        new(2020, 1, 1, 8, 0, 0, TimeSpan.Zero),
+        new(2020, 1, 3, 4, 0, 0, TimeSpan.Zero),
+        new(2020, 1, 3, 6, 0, 0, TimeSpan.Zero),
+        new(2020, 1, 3, 8, 0, 0, TimeSpan.Zero)
+    };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+
+        // Validamos que la secuencia completa coincida exactamente
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+    }
+
+
+
+
 
 }
