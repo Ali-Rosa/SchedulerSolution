@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Localization;
+using Scheduler.Domain.Models;
 using System.Globalization;
 
 namespace Scheduler.Domain.Rules;
@@ -14,7 +15,9 @@ public static class CultureRule
 
     public static bool IsValid(string locale)
     {
-        return !string.IsNullOrWhiteSpace(locale) && ValidCultureNames.Contains(locale);
+        return !string.IsNullOrWhiteSpace(locale) && 
+            ValidCultureNames.Contains(locale) &&
+            SchedulerLocalizerFactory.IsSupported(locale);
     }
 
     public static DayOfWeek GetFirstDayOfWeek(SchedulerConfiguration config)

@@ -510,7 +510,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Assert
         result.Description.ShouldContain("Every 2 hours");
-        result.Description.ShouldContain("at 04:00");
+        result.Description.ShouldContain("at 4:00 AM");
     }
 
     [Theory]

@@ -64,8 +64,8 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
         result.Description.ShouldContain("Occurs once");
-        result.Description.ShouldContain("15/05/2026");
-        result.Description.ShouldContain("14:30");
+        result.Description.ShouldContain("05-15-2026");
+        result.Description.ShouldContain("2:30 PM");
     }
 
     [Fact]
@@ -90,8 +90,8 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.CurrentDate);
         result.Description.ShouldContain("Occurs once");
-        result.Description.ShouldContain("12/05/2026");
-        result.Description.ShouldContain("10:00");
+        result.Description.ShouldContain("05-12-2026");
+        result.Description.ShouldContain("10:00 AM");
     }
 
     [Fact]
@@ -452,8 +452,8 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Description.ShouldContain("Occurs once");
-        result.Description.ShouldContain("15/05/2026");
-        result.Description.ShouldContain("starting on 10/05/2026");
+        result.Description.ShouldContain("05-15-2026");
+        result.Description.ShouldContain("starting on 05-10-2026");
     }
 
     [Fact]
@@ -506,7 +506,7 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Hour.ShouldBe(4);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
         // The description should show the local time (4:00 AM)
-        result.Description.ShouldContain("04:00");
+        result.Description.ShouldContain("4:00 AM");
     }
 
     #endregion Description Formatting

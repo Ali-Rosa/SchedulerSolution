@@ -1,16 +1,18 @@
-﻿namespace Scheduler.Domain.Models.Daily;
+﻿using Scheduler.Domain.Localization;
+
+namespace Scheduler.Domain.Models.Daily;
 
 public static class ScheduleDailyFrequencyExtensions
 {
-    public static (bool IsValid, string Error) Validate(this ScheduleDailyFrequency config)
+    public static (bool IsValid, string Error) Validate(this ScheduleDailyFrequency config, ISchedulerLocalizer localizer)
     {
         if (config.OccursEveryEnable)
         {
             if (!Enum.IsDefined(config.IntervalUnit))
-                return (false, "Not defined interval unit for daily frequency.");
-    
+               return (false, localizer.GetValidationError(ValidationErrorKey.InvalidIntervalUnit));
+
             if (config.FrequencyInterval <= 0)
-                return (false, "The frequency interval must be greater than 0.");
+                return (false, localizer.GetValidationError(ValidationErrorKey.FrequencyIntervalMustBePositive));
         }
     
         return (true, string.Empty);

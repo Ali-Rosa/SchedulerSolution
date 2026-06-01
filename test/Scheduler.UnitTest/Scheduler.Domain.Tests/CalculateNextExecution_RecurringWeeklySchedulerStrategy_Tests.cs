@@ -662,7 +662,7 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
             RecursEvery = 1,
             WeeklyConfiguration = new() { DaysOfWeek = [DayOfWeek.Friday] },
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "ru-RU", // Russian culture
+            Locale = "en-GB", // Gran bretaña culture
         };
 
         var result = _service.CalculateNextExecution(config);

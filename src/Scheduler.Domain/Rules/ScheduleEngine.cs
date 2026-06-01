@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Localization;
+using Scheduler.Domain.Models;
 
 namespace Scheduler.Domain.Rules;
 
@@ -46,7 +47,11 @@ public static class ScheduleEngine
             currentDay = nextValidDay.Value.AddDays(1);
         }
 
-        if (results.Count == 0) return new SchedulerResponse("No valid executions were found within the limits with this configuration.");
+        if (results.Count == 0)
+        {
+            var localizer = SchedulerLocalizerFactory.GetLocalizer(config.Locale);
+            return new SchedulerResponse(localizer.GetValidationError(ValidationErrorKey.NoExecutionsFound));
+        }
 
         string description = buildDescriptionLogic(results.First());
 
