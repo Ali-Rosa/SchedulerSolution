@@ -4,38 +4,45 @@ namespace Scheduler.Domain.Strategies;
 
 public sealed class OnceDailySchedulerStrategy : ISchedulerStrategy
 {
-    public SchedulerStrategyKey Key => new(SchedulerType.Once, SchedulerOccursType.Daily);
+    public StrategyKey Key => new(SchedulerType.Once, OccursType.Daily);
 
-    public SchedulerResponse CalculateNextExecution(DateTimeOffset currentDateUtc, SchedulerConfiguration config, TimeZoneInfo timeZone)
+    public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        var candidate = currentDateUtc;
+        var candidate = config.CurrentDate;
 
         if (config.ExecutionDateTimeLocal.HasValue)
         {
             if (candidate > config.ExecutionDateTimeLocal.Value)
-                return new SchedulerResponse("DateTime cannot be less than CurrentDate");
+                return new SchedulerResponse("The execution date cannot be in the past relative to the current date.");
 
             if (candidate < config.ExecutionDateTimeLocal.Value)
                 candidate = config.ExecutionDateTimeLocal.Value;
         }
 
-        if ((config.LimitsStartDateLocal.HasValue && candidate < config.LimitsStartDateLocal.Value)
-            || (config.LimitsEndDateLocal.HasValue && candidate > config.LimitsEndDateLocal.Value))
-            return new SchedulerResponse("The execution date is outside the allowed range.");
+        if (config.LimitsStartDateLocal.HasValue && candidate < config.LimitsStartDateLocal.Value)
+            return new SchedulerResponse("The selected execution date is earlier than the allowed start limit date.");
 
-        // OUTPUTS
-        DateTimeOffset candidateLocalTime = TimeZoneInfo.ConvertTime(candidate, timeZone!);
-        
-        var description = $"Occurs once. Schedule will be used on {candidateLocalTime:dd/MM/yyyy} "
-            + $"at {candidateLocalTime:HH:mm} ";
+        if (config.LimitsEndDateLocal.HasValue && candidate > config.LimitsEndDateLocal.Value)
+            return new SchedulerResponse("The selected execution date is later than the allowed end limit date.");
 
-        if (config.LimitsStartDateLocal.HasValue)
-        {
-            DateTimeOffset StartDateCandidatoLocalTime = TimeZoneInfo.ConvertTime(config.LimitsStartDateLocal!.Value, timeZone!);
-            description += $"starting on {StartDateCandidatoLocalTime:dd/MM/yyyy}";
-        }      
+        DateTimeOffset candidateLocalTime = TimeZoneInfo.ConvertTime(candidate, timeZone);
+
+        var description = BuildOnceDescription(candidateLocalTime, config.LimitsStartDateLocal, timeZone);     
 
         return new SchedulerResponse(candidateLocalTime, description);
     }
 
+    private static string BuildOnceDescription(DateTimeOffset candidateLocalTime, DateTimeOffset? limitsStartDateLocal, TimeZoneInfo timeZone)
+    {
+        var description = $"Occurs once. Schedule will be used on {candidateLocalTime:dd/MM/yyyy} "
+            + $"at {candidateLocalTime:HH:mm} ";
+
+        if (limitsStartDateLocal.HasValue)
+        {
+            DateTimeOffset startDateLocalTime = TimeZoneInfo.ConvertTime(limitsStartDateLocal.Value, timeZone);
+            description += $"starting on {startDateLocalTime:dd/MM/yyyy}";
+        }
+
+        return description;
+    }
 }

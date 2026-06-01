@@ -1,81 +1,85 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Monthly;
 
 namespace Scheduler.Domain.Rules;
 
 public static class MonthlyCalendarRule
 {
-    public static bool IsValidDay(DateOnly currentDay, DateOnly startDate, int everyMonths, SchedulerMonthly monthlyConfig)
+    public static DateOnly? GetNextValidDay(DateOnly fromDay, DateOnly startDate, int everyMonths, SchedulerMonthly monthlyConfig)
     {
-        // The total difference in months between the start date and the current date is calculated
-        int monthsDiff = ((currentDay.Year - startDate.Year) * 12) + currentDay.Month - startDate.Month;
+        if (everyMonths <= 0) everyMonths = 1;
 
-        // If the current month is earlier than the start date or does not match the multiple of months, it is invalid
-        if (monthsDiff < 0 || monthsDiff % everyMonths != 0)
-            return false;
+        // Difference in months between the start and the consultation date
+        int diffMonths = ((fromDay.Year - startDate.Year) * 12) + fromDay.Month - startDate.Month;
 
-        // Logic for "Specific Day" (e.g., the 8th day of each month)
-        if (monthlyConfig.IsSpecificDay)
+        int targetMonthOffset;
+        if (diffMonths <= 0) targetMonthOffset = 0;
+        else
         {
-            int targetDay = monthlyConfig.SpecificDayNumber!.Value;
-            int daysInCurrentMonth = DateTime.DaysInMonth(currentDay.Year, currentDay.Month);
-
-            // Protection: If the requested day is 31 in February, adjust it to 28/29 (End of month)
-            // This possibility must be eradicated at a higher stage, possibly in validations; NO OLVIDAR
-            //if (targetDay > daysInCurrentMonth)
-            //    targetDay = daysInCurrentMonth;
-
-            if (targetDay > daysInCurrentMonth)
-                return false; // Salimos, no hay ejecución este mes
-
-            return currentDay.Day == targetDay;
+            // Rounding up to find the month multiple of 'everyMonths'
+            targetMonthOffset = ((diffMonths + everyMonths - 1) / everyMonths) * everyMonths;
         }
 
-        // Logic for "Relative Day" (e.g., The First Thursday, The Second Weekend)
-        var calculatedRelativeDate = GetRelativeDate(currentDay.Year, currentDay.Month, monthlyConfig.RelativeOrdinal!.Value, monthlyConfig.RelativeDayType!.Value);
+        while (true)
+        {
+            var targetMonthDate = startDate.AddMonths(targetMonthOffset);
+            int year = targetMonthDate.Year;
+            int month = targetMonthDate.Month;
 
-        return calculatedRelativeDate.HasValue && currentDay == calculatedRelativeDate.Value;
+            DateOnly? candidateDay = null;
 
+            if (monthlyConfig.IsSpecificDay)
+            {
+                int targetDay = monthlyConfig.SpecificDayNumber!.Value;
+                int daysInCurrentMonth = DateTime.DaysInMonth(year, month);
+
+                // Check if the target day exists in this specific month
+                if (targetDay <= daysInCurrentMonth) candidateDay = new DateOnly(year, month, targetDay);
+            }
+            else
+            {
+                candidateDay = GetRelativeDate(year, month, monthlyConfig.RelativeOrdinal!.Value, monthlyConfig.RelativeDayType!.Value);
+            }
+
+            // If the calculated day in this month is valid and is equal to or after 'fromDay', return it
+            if (candidateDay.HasValue && candidateDay.Value >= fromDay) return candidateDay.Value;
+
+            // If the calculated day for this month has already passed relative to the current date,
+            // jump to the next cycle of months analytically
+            targetMonthOffset += everyMonths;
+        }
     }
 
-    private static DateOnly? GetRelativeDate(int year, int month, SchedulerMonthlyRelativeOrdinal ordinal, SchedulerMonthlyRelativeDayType dayType)
+    private static DateOnly? GetRelativeDate(int year, int month, MonthlyRelativeOrdinal ordinal, MonthlyRelativeDayType dayType)
     {
         int daysInMonth = DateTime.DaysInMonth(year, month);
         var matchingDays = new List<DateOnly>();
 
-        // Collect all days of this month that match the condition (e.g., All Thursdays)
         for (int day = 1; day <= daysInMonth; day++)
         {
             var date = new DateOnly(year, month, day);
-            if (IsMatchingType(date, dayType))
-            {
-                matchingDays.Add(date);
-            }
+            if (IsMatchingType(date, dayType)) matchingDays.Add(date);
         }
 
         if (!matchingDays.Any()) return null;
 
-        // If it's the "Last", return the last in the collected list
-        if (ordinal == SchedulerMonthlyRelativeOrdinal.Last)
-            return matchingDays.Last();
+        if (ordinal == MonthlyRelativeOrdinal.Last) return matchingDays.Last();
 
-        // For First (1), Second (2), etc... subtract 1 to get the array index (0, 1, 2...)
         int index = (int)ordinal - 1;
 
-        if (index >= 0 && index < matchingDays.Count)
-            return matchingDays[index];
+        if (index >= 0 && index < matchingDays.Count) return matchingDays[index];
 
-        return null; 
-
+        return null;
     }
 
-    private static bool IsMatchingType(DateOnly date, SchedulerMonthlyRelativeDayType type)
+    private static bool IsMatchingType(DateOnly date, MonthlyRelativeDayType type)
     {
         return type switch
         {
-            SchedulerMonthlyRelativeDayType.Day => true,
-            SchedulerMonthlyRelativeDayType.Weekday => date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday,
-            SchedulerMonthlyRelativeDayType.WeekendDay => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday,
-            _ => (int)date.DayOfWeek == (int)type // We take advantage of the fact that 0-6 matches System.DayOfWeek
+            MonthlyRelativeDayType.Day => true,
+            MonthlyRelativeDayType.Weekday => date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday,
+            MonthlyRelativeDayType.WeekendDay => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday,
+            _ => (int)date.DayOfWeek == (int)type
         };
     }
+
 }

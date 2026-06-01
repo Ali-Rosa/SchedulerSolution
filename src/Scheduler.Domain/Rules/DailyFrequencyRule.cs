@@ -1,4 +1,4 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Models.Daily;
 
 namespace Scheduler.Domain.Rules;
 
@@ -6,18 +6,6 @@ public static class DailyFrequencyRule
 {
     public static IEnumerable<DateTimeOffset> GetExecutionsForDay(DateOnly day, ScheduleDailyFrequency schedule, TimeZoneInfo timeZone)
     {
-        // Single execution in the day (OccursOnceEnable)
-        if (schedule.OccursOnceEnable)
-        {
-            var dt = day.ToDateTime(schedule.OnceTime);
-            if (!timeZone.IsInvalidTime(dt))
-            {
-                yield return TimeZoneInfo.ConvertTimeToUtc(dt, timeZone);
-            }
-            yield break; // End here if it's a single execution
-        }
-
-        // Recurrent intra-day execution (OccursEveryEnable)
         if (schedule.OccursEveryEnable)
         {
             var start = day.ToDateTime(schedule.StartTime);
@@ -33,12 +21,21 @@ public static class DailyFrequencyRule
 
                 current = schedule.IntervalUnit switch
                 {
-                    SchedulerTimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
-                    SchedulerTimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
-                    SchedulerTimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
+                    TimeIntervalUnit.Hours => current.AddHours(schedule.FrequencyInterval),
+                    TimeIntervalUnit.Minutes => current.AddMinutes(schedule.FrequencyInterval),
+                    TimeIntervalUnit.Seconds => current.AddSeconds(schedule.FrequencyInterval),
                     _ => end.AddTicks(1)
                 };
             }
+        }
+        else
+        {
+            var dt = day.ToDateTime(schedule.OnceTime);
+            if (!timeZone.IsInvalidTime(dt))
+            {
+                yield return TimeZoneInfo.ConvertTimeToUtc(dt, timeZone);
+            }
+            yield break;
         }
     }
 }

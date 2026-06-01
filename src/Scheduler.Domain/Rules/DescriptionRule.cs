@@ -10,14 +10,13 @@ public static class DescriptionRule
         var local = TimeZoneInfo.ConvertTime(nextExecution, timeZone);
         var desc = prefix;
 
-        if (config.DailyFrequency != null)
+        if (config.DailyFrequencyConfiguration != null && config.DailyFrequencyConfiguration.OccursEveryEnable)
         {
-            desc += $"Every {config.DailyFrequency.FrequencyInterval} {config.DailyFrequency.IntervalUnit.ToString().ToLower()} ";
+            desc += $"Every {config.DailyFrequencyConfiguration.FrequencyInterval} {config.DailyFrequencyConfiguration.IntervalUnit.ToString().ToLower()} ";
         }
 
         desc += $"at {local:HH:mm}. Starting on {local:dd/MM/yyyy}";
 
         return desc;
     }
-
 }

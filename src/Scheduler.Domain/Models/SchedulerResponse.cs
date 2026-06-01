@@ -3,7 +3,7 @@
 public readonly struct SchedulerResponse
 {
     public bool IsSuccess { get; }
-    public DateTimeOffset? NextExecutionTime => (NextExecutionTimes != null && NextExecutionTimes.Any()) ? NextExecutionTimes.First() : null;
+    public DateTimeOffset? NextExecutionTime => NextExecutionTimes != null && NextExecutionTimes.Any() ? NextExecutionTimes.First() : null;
     public IEnumerable<DateTimeOffset> NextExecutionTimes { get; }
     public string Description { get; }
     public string ErrorMessage { get; }
