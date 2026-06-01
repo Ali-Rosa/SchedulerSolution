@@ -19,18 +19,15 @@ public static class CultureRule
 
     public static DayOfWeek GetFirstDayOfWeek(SchedulerConfiguration config)
     {
-        // If the user sets a day, it will be used.
         if (config.FirstDayOfWeek.HasValue) return config.FirstDayOfWeek.Value;
 
-        // Otherwise, we extract it from the culture (already validated beforehand).
         var culture = new CultureInfo(config.Locale!);
         return culture.DateTimeFormat.FirstDayOfWeek;
     }
 
     public static CultureInfo GetCultureInfo(string locale)
     {
-        // Safe method because it is called AFTER validation
+        // Safe method because it is called AFTER validation in the environment validator
         return new CultureInfo(locale);
     }
-
 }
