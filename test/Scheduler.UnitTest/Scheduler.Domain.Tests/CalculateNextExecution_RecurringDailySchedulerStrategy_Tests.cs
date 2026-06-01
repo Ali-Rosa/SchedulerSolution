@@ -591,11 +591,13 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
     #endregion Logical Consistency
 
+    #region Date Sequences
+    
     [Fact]
     public void Calculate_NextExecution_RecurringDaily_Should_Return_Sequence_In_Single_Call()
     {
-        // Arrange - Configuración basada en el ejemplo de la Parte 2 (página 1):
-        // Ocurre cada 2 días, frecuencia diaria cada 2 horas de 4:00 a 8:00, iniciando el 01/01/2020.
+        // Arrange - Configuration based on the example in Part 2 (page 1):
+        // It occurs every 2 days, daily frequency every 2 hours from 4:00 to 8:00, starting on 01/01/2020.
         SchedulerConfiguration config = new()
         {
             CurrentDate = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero),
@@ -603,7 +605,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
             Type = SchedulerType.Recurring,
             Occurs = OccursType.Daily,
             RecursEvery = 2,
-            MaxOccurrences = 6, // <--- Aquí solicitamos la secuencia de 6 fechas
+            MaxOccurrences = 6,
             DailyFrequencyConfiguration = new()
             {
                 OccursEveryEnable = true,
@@ -617,7 +619,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
             LimitsStartDateLocal = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero)
         };
 
-        // Secuencia de salida esperada según la especificación
+        // Expected output sequence according to the specification
         var expectedSequence = new List<DateTimeOffset>
     {
         new(2020, 1, 1, 4, 0, 0, TimeSpan.Zero),
@@ -634,12 +636,9 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
 
-        // Validamos que la secuencia completa coincida exactamente
+        // Validate that the entire sequence matches exactly
         result.NextExecutionTimes.ShouldBe(expectedSequence);
     }
 
-
-
-
-
+    #endregion Date Sequences
 }

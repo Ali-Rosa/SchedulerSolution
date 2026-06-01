@@ -8,14 +8,14 @@ public static class MonthlyCalendarRule
     {
         if (everyMonths <= 0) everyMonths = 1;
 
-        // Diferencia de meses entre el inicio y la fecha de consulta
+        // Difference in months between the start and the consultation date
         int diffMonths = ((fromDay.Year - startDate.Year) * 12) + fromDay.Month - startDate.Month;
 
         int targetMonthOffset;
         if (diffMonths <= 0) targetMonthOffset = 0;
         else
         {
-            // Redondeo hacia arriba para encontrar el mes múltiplo de 'everyMonths'
+            // Rounding up to find the month multiple of 'everyMonths'
             targetMonthOffset = ((diffMonths + everyMonths - 1) / everyMonths) * everyMonths;
         }
 
@@ -32,7 +32,7 @@ public static class MonthlyCalendarRule
                 int targetDay = monthlyConfig.SpecificDayNumber!.Value;
                 int daysInCurrentMonth = DateTime.DaysInMonth(year, month);
 
-                // Controlamos si el día buscado existe en este mes específico
+                // Check if the target day exists in this specific month
                 if (targetDay <= daysInCurrentMonth) candidateDay = new DateOnly(year, month, targetDay);
             }
             else
@@ -40,11 +40,11 @@ public static class MonthlyCalendarRule
                 candidateDay = GetRelativeDate(year, month, monthlyConfig.RelativeOrdinal!.Value, monthlyConfig.RelativeDayType!.Value);
             }
 
-            // Si el día calculado en este mes es válido y es igual o posterior a 'fromDay', lo devolvemos
+            // If the calculated day in this month is valid and is equal to or after 'fromDay', return it
             if (candidateDay.HasValue && candidateDay.Value >= fromDay) return candidateDay.Value;
 
-            // Si el día calculado para este mes ya pasó respecto a la fecha actual,
-            // saltamos al siguiente ciclo de meses de forma analítica
+            // If the calculated day for this month has already passed relative to the current date,
+            // jump to the next cycle of months analytically
             targetMonthOffset += everyMonths;
         }
     }

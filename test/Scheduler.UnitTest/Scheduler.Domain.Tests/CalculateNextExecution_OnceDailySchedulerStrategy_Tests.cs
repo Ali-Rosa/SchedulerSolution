@@ -424,7 +424,6 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     }
 
     #endregion TimeZone & Localization
-
     #region Description Formatting
 
     [Fact]

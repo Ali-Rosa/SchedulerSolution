@@ -8,11 +8,11 @@ public static class DailyCalendarRule
 
         int diff = fromDay.DayNumber - startDate.DayNumber;
 
-        // Si la fecha de consulta es anterior o igual al inicio, la primera ejecución es la de inicio
+        // If the query date is earlier than or equal to the start date, the first execution is the start date.
         if (diff <= 0) return startDate;
 
-        // División entera con redondeo hacia arriba para saber cuántos intervalos de 'everyDays' 
-        // necesitamos añadir para alcanzar o superar a 'fromDay'
+        // Integer division with rounding up to determine how many 'everyDays' intervals
+        // we need to add to reach or surpass 'fromDay'
         int intervals = (diff + everyDays - 1) / everyDays;
 
         return startDate.AddDays(intervals * everyDays);

@@ -18,11 +18,11 @@ public static class WeeklyCalendarRule
 
         while (true)
         {
-            // Calculamos el inicio real de la semana aplicando el desplazamiento del firstDayOfWeek
+            // We calculate the actual start of the week by applying the firstDayOfWeek offset
             int dayOffset = ((int)firstDayOfWeek - 1 + 7) % 7;
             var weekStart = DateOnly.FromDayNumber(targetWeekIndex * 7 + dayOffset);
 
-            // Buscamos los días activos de esa semana objetivo que sean iguales o posteriores a 'fromDay'
+            // We look for the active days of that target week that are equal to or after 'fromDay'
             var validDaysInWeek = Enumerable.Range(0, 7)
                 .Select(offset => weekStart.AddDays(offset))
                 .Where(day => daysOfWeek.Contains(day.DayOfWeek) && day >= fromDay)
@@ -31,7 +31,7 @@ public static class WeeklyCalendarRule
 
             if (validDaysInWeek.Any()) return validDaysInWeek.First();
 
-            // Si los días de la semana configurados ya ocurrieron, saltamos al siguiente ciclo
+            // If the configured days of the week have already occurred, jump to the next cycle
             targetWeekIndex += everyWeeks;
         }
     }

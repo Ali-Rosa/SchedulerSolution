@@ -70,10 +70,10 @@ public static class ScheduleEngine
     {
         var localDateTime = day.ToDateTime(TimeOnly.FromTimeSpan(anchorTime));
 
-        // Comprobamos si la hora local es inválida por la transición de primavera (Spring Forward)
+        // We check if the local time is invalid due to the Spring Forward transition.
         if (timeZone.IsInvalidTime(localDateTime)) return Array.Empty<DateTimeOffset>();
 
-        // Convertimos a UTC de forma segura
+        // Convert to UTC safely
         var utcDateTime = TimeZoneInfo.ConvertTimeToUtc(localDateTime, timeZone);
 
         return new[] { new DateTimeOffset(utcDateTime, TimeSpan.Zero) };
