@@ -1,7 +1,6 @@
 ﻿using Scheduler.Domain.Models;
 using Scheduler.Domain.Models.Daily;
 using Scheduler.Domain.Models.Monthly;
-using Scheduler.Domain.Models.Weekly;
 
 namespace Scheduler.Domain.Localization;
 

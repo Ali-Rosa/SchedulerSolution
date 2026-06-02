@@ -20,10 +20,12 @@ public class SchedulerService
         }
 
         var (isValidConfig, configError) = config.Validate();
-        if (!isValidConfig) return new SchedulerResponse(configError);
+        if (!isValidConfig) 
+            return new SchedulerResponse(configError);
 
         var (isEnvValid, envError, timeZone) = SchedulerEnvironmentValidator.Validate(config);
-        if (!isEnvValid) return new SchedulerResponse(envError);
+        if (!isEnvValid) 
+            return new SchedulerResponse(envError);
 
         var key = new StrategyKey(config.Type, config.Occurs);
         if (!_strategies.TryGetValue(key, out var strategy))

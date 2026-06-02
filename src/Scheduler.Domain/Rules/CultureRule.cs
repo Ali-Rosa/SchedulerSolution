@@ -27,10 +27,4 @@ public static class CultureRule
         var culture = new CultureInfo(config.Locale!);
         return culture.DateTimeFormat.FirstDayOfWeek;
     }
-
-    public static CultureInfo GetCultureInfo(string locale)
-    {
-        // Safe method because it is called AFTER validation in the environment validator
-        return new CultureInfo(locale);
-    }
 }
