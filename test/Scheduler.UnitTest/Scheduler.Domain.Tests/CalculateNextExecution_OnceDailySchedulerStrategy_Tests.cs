@@ -12,11 +12,14 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
     #region Specific validations OnceDailyStrategy
 
+    
     [Theory]
     [InlineData("en-US", "The execution date cannot be in the past relative to the current date.")]
     [InlineData("en-GB", "The execution date cannot be in the past relative to the current date.")]
     [InlineData("es-ES", "La fecha de ejecución no puede estar en el pasado con respecto a la fecha actual.")]
-    public void CalculateNextExecution_WhenExecutionDateTimeLocalIsBeforeCurrentDate_ReturnsError(string locale, string expectedErrorMessage)
+    public void CalculateNextExecution_WhenExecutionDateTimeLocalIsBeforeCurrentDate_ReturnsError(
+        string locale, 
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -37,9 +40,11 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
+    
     #endregion Specific validations OnceDailyStrategy
 
     #region Basic & Default Scenarios
@@ -49,10 +54,10 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     [InlineData("en-GB", "Occurs once", "15/05/2026", "14:30")]
     [InlineData("es-ES", "Ocurre una vez", "15/05/2026", "14:30")]
     public void CalculateNextExecution_WhenExecutionDateTimeLocalIsAfterCurrentDate_ReturnsExecutionDateTime(
-            string locale,
-            string expectedPrefix,
-            string expectedDate,
-            string expectedTime )
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -73,6 +78,7 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedDate);
         result.Description.ShouldContain(expectedTime);
@@ -84,10 +90,10 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     [InlineData("en-GB", "Occurs once", "12/05/2026", "10:00")]
     [InlineData("es-ES", "Ocurre una vez", "12/05/2026", "10:00")]
     public void CalculateNextExecution_WhenExecutionDateTimeLocalIsNotProvided_UsesCurrentDate(
-            string locale,
-            string expectedPrefix,
-            string expectedDate,
-            string expectedTime )
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -107,6 +113,7 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.CurrentDate);
+        result.ErrorMessage.ShouldBeEmpty();
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedDate);
         result.Description.ShouldContain(expectedTime);
@@ -114,10 +121,14 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
 
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenExecutionDateTimeEqualsCurrentDate_ReturnsExecutionDateTime(string locale)
+    [InlineData("en-US", "Occurs once", "05-10-2026", "10:00 AM")]
+    [InlineData("en-GB", "Occurs once", "10/05/2026", "10:00")]
+    [InlineData("es-ES", "Ocurre una vez", "10/05/2026", "10:00")]
+    public void CalculateNextExecution_WhenExecutionDateTimeEqualsCurrentDate_ReturnsExecutionDateTime(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -138,6 +149,10 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
 
@@ -145,11 +160,14 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
     #region Execution Limits
 
+    
     [Theory]
     [InlineData("en-US", "The selected execution date is earlier than the allowed start limit date.")]
     [InlineData("en-GB", "The selected execution date is earlier than the allowed start limit date.")]
     [InlineData("es-ES", "La fecha de ejecución seleccionada es anterior a la fecha límite de inicio permitida.")]
-    public void CalculateNextExecution_WhenExecutionDateTimeIsBeforeStartLimit_ReturnsError(string locale, string expectedErrorMessage)
+    public void CalculateNextExecution_WhenExecutionDateTimeIsBeforeStartLimit_ReturnsError(
+        string locale, 
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -172,6 +190,7 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
@@ -180,7 +199,9 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     [InlineData("en-US", "The selected execution date is later than the allowed end limit date.")]
     [InlineData("en-GB", "The selected execution date is later than the allowed end limit date.")]
     [InlineData("es-ES", "La fecha de ejecución seleccionada es posterior a la fecha límite de fin permitida.")]
-    public void CalculateNextExecution_WhenExecutionDateTimeIsAfterEndLimit_ReturnsError(string locale, string expectedErrorMessage)
+    public void CalculateNextExecution_WhenExecutionDateTimeIsAfterEndLimit_ReturnsError(
+        string locale, 
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -203,15 +224,20 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
 
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenStartAndEndLimitsAreEqual_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-15-2026", "10:00 AM")]
+    [InlineData("en-GB", "Occurs once", "15/05/2026", "10:00")]
+    [InlineData("es-ES", "Ocurre una vez", "15/05/2026", "10:00")]
+    public void CalculateNextExecution_WhenStartAndEndLimitsAreEqual_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -235,6 +261,9 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
         result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
 
@@ -242,7 +271,10 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     [InlineData("en-US", 1, "The execution date cannot be in the past relative to the current date.")] // 1 hour ago
     [InlineData("en-GB", 1, "The execution date cannot be in the past relative to the current date.")] 
     [InlineData("es-ES", 1, "La fecha de ejecución no puede estar en el pasado con respecto a la fecha actual.")] 
-    public void CalculateNextExecution_WhenExecutionDateTimeIsInPast_ReturnsError(string locale, int hoursBack, string expectedError)
+    public void CalculateNextExecution_WhenExecutionDateTimeIsInPast_ReturnsError(
+        string locale, 
+        int hoursBack, 
+        string expectedError )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -262,23 +294,25 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe(expectedError);
     }
 
     
     [Theory]
     [InlineData("en-US", 10, null, 5, "The selected execution date is later than the allowed end limit date.")]
-    [InlineData("en-US", 2, 5, null, "The selected execution date is earlier than the allowed start limit date.")]
     [InlineData("en-GB", 10, null, 5, "The selected execution date is later than the allowed end limit date.")]
-    [InlineData("en-GB", 2, 5, null, "The selected execution date is earlier than the allowed start limit date.")]
     [InlineData("es-ES", 10, null, 5, "La fecha de ejecución seleccionada es posterior a la fecha límite de fin permitida.")]
+    [InlineData("en-US", 2, 5, null, "The selected execution date is earlier than the allowed start limit date.")]
+    [InlineData("en-GB", 2, 5, null, "The selected execution date is earlier than the allowed start limit date.")]
     [InlineData("es-ES", 2, 5, null, "La fecha de ejecución seleccionada es anterior a la fecha límite de inicio permitida.")]
     public void CalculateNextExecution_WhenExecutionDateTimeIsOutsideLimits_ReturnsError(
-            string locale,
-            int daysToExecution,
-            int? daysToStartLimit,
-            int? daysToEndLimit,
-            string expectedErrorMessage )
+        string locale,
+        int daysToExecution,
+        int? daysToStartLimit,
+        int? daysToEndLimit,
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -301,15 +335,20 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
     
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenOnlyStartLimitExistsAndExecutionIsValid_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-10-2026", "10:00 AM")]
+    [InlineData("en-GB", "Occurs once", "10/05/2026", "10:00")]
+    [InlineData("es-ES", "Ocurre una vez", "10/05/2026", "10:00")]
+    public void CalculateNextExecution_WhenOnlyStartLimitExistsAndExecutionIsValid_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -331,14 +370,22 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
 
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenOnlyEndLimitExistsAndExecutionIsValid_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-10-2026", "10:00 AM")]
+    [InlineData("en-GB", "Occurs once", "10/05/2026", "10:00")]
+    [InlineData("es-ES", "Ocurre una vez", "10/05/2026", "10:00")]
+    public void CalculateNextExecution_WhenOnlyEndLimitExistsAndExecutionIsValid_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -360,17 +407,27 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
+    
     #endregion Execution Limits
 
     #region Date/Time Range Limits
 
+
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenExecutionDateTimeIsWithinLimits_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-15-2026", "2:30 PM")]
+    [InlineData("en-GB", "Occurs once", "15/05/2026", "14:30")]
+    [InlineData("es-ES", "Ocurre una vez", "15/05/2026", "14:30")]
+    public void CalculateNextExecution_WhenExecutionDateTimeIsWithinLimits_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -392,15 +449,23 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTime.ShouldBe(new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero));
+        result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
 
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenExecutionDateTimeEqualsStartLimit_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-15-2026", "2:30 PM")]
+    [InlineData("en-GB", "Occurs once", "15/05/2026", "14:30")]
+    [InlineData("es-ES", "Ocurre una vez", "15/05/2026", "14:30")]
+    public void CalculateNextExecution_WhenExecutionDateTimeEqualsStartLimit_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -421,15 +486,23 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTime.ShouldBe(new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero));
+        result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
 
 
     [Theory]
-    [InlineData("en-US")]
-    [InlineData("en-GB")]
-    [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenExecutionDateTimeEqualsEndLimit_ReturnsSuccess(string locale)
+    [InlineData("en-US", "Occurs once", "05-15-2026", "2:30 PM")]
+    [InlineData("en-GB", "Occurs once", "15/05/2026", "14:30")]
+    [InlineData("es-ES", "Ocurre una vez", "15/05/2026", "14:30")]
+    public void CalculateNextExecution_WhenExecutionDateTimeEqualsEndLimit_ReturnsSuccess(
+        string locale,
+        string expectedPrefix,
+        string expectedDate,
+        string expectedTime )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -450,12 +523,18 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.NextExecutionTime.ShouldBe(new DateTimeOffset(2026, 5, 15, 14, 30, 0, TimeSpan.Zero));
+        result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);
+        result.ErrorMessage.ShouldBeEmpty();
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedDate);
+        result.Description.ShouldContain(expectedTime);
     }
+
 
     #endregion Date/Time Range Limits
 
     #region TimeZone & Localization
+
 
     [Theory]
     [InlineData("en-US", "Occurs once", "05-10-2026", "12:00 PM")]
@@ -485,15 +564,14 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         result.NextExecutionTime.Value.Hour.ShouldBe(12); // 10 UTC + 2 horas de diferencia local
         result.NextExecutionTime.Value.Offset.ShouldBe(TimeSpan.FromHours(2));
-
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedDate);
         result.Description.ShouldContain(expectedTime);
     }
 
+    
     #endregion TimeZone & Localization
 
     #region Description Formatting
@@ -592,7 +670,6 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // El cálculo numérico debe convertirse correctamente a hora CST (10:00 UTC - 6 horas = 04:00 CST)
         result.NextExecutionTime.Value.Hour.ShouldBe(4);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
@@ -610,7 +687,8 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
     [InlineData("en-US")]
     [InlineData("en-GB")]
     [InlineData("es-ES")]
-    public void CalculateNextExecution_WhenRecursEveryIsProvided_IgnoresForOnceSchedule(string locale)
+    public void CalculateNextExecution_WhenRecursEveryIsProvided_IgnoresForOnceSchedule(
+        string locale )
     {
         // Arrange: RecursEvery value should be irrelevant
         SchedulerConfiguration config = new()
@@ -664,7 +742,7 @@ public class CalculateNextExecution_OnceDailySchedulerStrategy_Tests
         // Act
         var result = _service.CalculateNextExecution(config);
 
-        // Assert: Only one execution, not multiple
+        // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTimes.Count().ShouldBe(1);
         result.NextExecutionTime.ShouldBe(config.ExecutionDateTimeLocal);

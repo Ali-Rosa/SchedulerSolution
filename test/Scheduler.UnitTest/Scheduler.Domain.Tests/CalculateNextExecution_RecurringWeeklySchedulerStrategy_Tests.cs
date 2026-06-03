@@ -39,7 +39,7 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeEmpty();
         // Verify that the validation error message is returned in the corresponding language
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -76,7 +76,7 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeEmpty();
         // Verify that the validation error message is returned in the corresponding language
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -124,14 +124,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that the execution result occurs on the same day (Wednesday, January 1, 2020) at 15:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2020);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
         result.NextExecutionTime.Value.Day.ShouldBe(1);
         result.NextExecutionTime.Value.Hour.ShouldBe(15);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -183,7 +181,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(3); // Friday
         result.NextExecutionTime.Value.Hour.ShouldBe(15);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -236,12 +233,81 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(7); // Tuesday of the next week
         result.NextExecutionTime.Value.Hour.ShouldBe(9);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
         result.Description.ShouldContain(expectedDate);
     }
+
+
+    [Theory]
+    [InlineData("en-US", "Occurs every 2 weeks on Wednesday and Friday", "3:00 PM", "01-03-2020")]
+    [InlineData("en-GB", "Occurs every 2 weeks on Wednesday and Friday", "15:00", "03/01/2020")]
+    [InlineData("es-ES", "Ocurre cada 2 semanas el miércoles y viernes", "15:00", "03/01/2020")]
+    public void Calculate_NextExecution_RecurringBiWeekly_Should_Return_Sequence(
+            string locale,
+            string expectedPrefix,
+            string expectedTime,
+            string expectedDate )
+    {
+        // Arrange: Start on Wednesday, Jan 1, 2020 at 10:00 PM. 
+        // RecursEvery = 2 (every other week on Wednesday and Friday).
+        // Week of Jan 1 is active (Wednesday has passed, Friday runs).
+        // Week of Jan 5 is skipped.
+        // Week of Jan 12 is active (Wednesday and Friday run).
+        // Week of Jan 19 is skipped.
+        // Week of Jan 26 is active (Wednesday and Friday run).
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2020, 1, 1, 22, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Weekly,
+            RecursEvery = 2, // Ejecución cada dos semanas
+            MaxOccurrences = 5,
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = false,
+                OnceTime = new TimeOnly(15, 0)
+            },
+            WeeklyConfiguration = new()
+            {
+                DaysOfWeek = [DayOfWeek.Wednesday, DayOfWeek.Friday]
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence of executions (alternating weeks):
+        // 1. Friday, Jan 3, 2020
+        // -- Week of Jan 5 is skipped --
+        // 2. Wednesday, Jan 15, 2020
+        // 3. Friday, Jan 17, 2020
+        // -- Week of Jan 19 is skipped --
+        // 4. Wednesday, Jan 29, 2020
+        // 5. Friday, Jan 31, 2020
+        var expectedSequence = new List<DateTimeOffset>
+        {
+            new(2020, 1, 3, 15, 0, 0, TimeSpan.Zero),
+            new(2020, 1, 15, 15, 0, 0, TimeSpan.Zero),
+            new(2020, 1, 17, 15, 0, 0, TimeSpan.Zero),
+            new(2020, 1, 29, 15, 0, 0, TimeSpan.Zero),
+            new(2020, 1, 31, 15, 0, 0, TimeSpan.Zero)
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        // Validate that the bi-weekly sequence matches exactly
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        // Validate that the description of the first execution reflects the language and the 2-week interval
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedTime);
+        result.Description.ShouldContain(expectedDate);
+    }
+
 
 
     #endregion OccursOnce Mode
@@ -302,12 +368,10 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the logical accuracy of time jumps calculated by the engine
         result.NextExecutionTime.Value.Day.ShouldBe(expectedDay);
         result.NextExecutionTime.Value.Hour.ShouldBe(expectedHour);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -350,14 +414,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it remains in the same week (Friday, May 8, 2026) at 10:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(5);
         result.NextExecutionTime.Value.Day.ShouldBe(8);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -367,18 +429,18 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
 
     [Theory]
     // Case 1: Monday, May 4th at 12:00 PM -> Should fall on Wednesday, May 6th at 12:00 AM (Same week)
-    [InlineData(0, 12, 6, "en-US", "Occurs every 3 weeks on Monday, Wednesday and Friday", "12:00 AM", "05-06-2026")]
-    [InlineData(0, 12, 6, "en-GB", "Occurs every 3 weeks on Monday, Wednesday and Friday", "00:00", "06/05/2026")]
-    [InlineData(0, 12, 6, "es-ES", "Ocurre cada 3 semanas el lunes, miércoles y viernes", "00:00", "06/05/2026")]
+    [InlineData("en-US", 0, 12, 6, "Occurs every 3 weeks on Monday, Wednesday and Friday", "12:00 AM", "05-06-2026")]
+    [InlineData("en-GB", 0, 12, 6, "Occurs every 3 weeks on Monday, Wednesday and Friday", "00:00", "06/05/2026")]
+    [InlineData("es-ES", 0, 12, 6, "Ocurre cada 3 semanas el lunes, miércoles y viernes", "00:00", "06/05/2026")]
     // Case 2: Friday, May 8th at 12:00 PM -> Skips weeks -> Should fall on Monday, May 25th at 12:00 AM (Week 3)
-    [InlineData(4, 12, 25, "en-US", "Occurs every 3 weeks on Monday, Wednesday and Friday", "12:00 AM", "05-25-2026")]
-    [InlineData(4, 12, 25, "en-GB", "Occurs every 3 weeks on Monday, Wednesday and Friday", "00:00", "25/05/2026")]
-    [InlineData(4, 12, 25, "es-ES", "Ocurre cada 3 semanas el lunes, miércoles y viernes", "00:00", "25/05/2026")]
+    [InlineData("en-US", 4, 12, 25, "Occurs every 3 weeks on Monday, Wednesday and Friday", "12:00 AM", "05-25-2026")]
+    [InlineData("en-GB", 4, 12, 25, "Occurs every 3 weeks on Monday, Wednesday and Friday", "00:00", "25/05/2026")]
+    [InlineData("es-ES", 4, 12, 25, "Ocurre cada 3 semanas el lunes, miércoles y viernes", "00:00", "25/05/2026")]
     public void CalculateNextExecution_WhenMultipleDaysConfigured_ReturnsCorrectNextExecution(
+            string locale,
             int offsetDays,
             int offsetHours,
             int expectedDay,
-            string locale,
             string expectedPrefix,
             string expectedTime,
             string expectedDate )
@@ -411,11 +473,9 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(expectedDay);
         result.NextExecutionTime.Value.Month.ShouldBe(5);
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
-
         // Being anchored to the LimitsStartDateLocal time, the hour will always be 00:00
         result.NextExecutionTime.Value.Hour.ShouldBe(0);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -457,14 +517,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the correct 2-week jump (from Monday, May 4th to Monday, May 18th) at 12:01 AM UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(5);
         result.NextExecutionTime.Value.Day.ShouldBe(18);
         result.NextExecutionTime.Value.Hour.ShouldBe(0);
         result.NextExecutionTime.Value.Minute.ShouldBe(1);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -514,14 +572,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the correct week jump (Monday, January 13th, 2020) at 04:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2020);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
         result.NextExecutionTime.Value.Day.ShouldBe(13);
         result.NextExecutionTime.Value.Hour.ShouldBe(4);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -548,11 +604,11 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Arrange
         SchedulerConfiguration config = new()
         {
-            CurrentDate = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero), // Lunes 04 a las 10:00 AM.
+            CurrentDate = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero), // Monday the 4th at 10:00 AM.
             Enabled = true,
             Type = SchedulerType.Recurring,
             Occurs = OccursType.Weekly,
-            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 20, 11, 0, 0, TimeSpan.Zero).AddHours(5), // 03:00 PM - Debe ignorarse
+            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 20, 11, 0, 0, TimeSpan.Zero).AddHours(5), // 03:00 PM - Should be ignored
             RecursEvery = 1,
             WeeklyConfiguration = new() { DaysOfWeek = [DayOfWeek.Monday] },
             TimeZoneId = TimeZoneInfo.Utc.Id,
@@ -570,7 +626,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(11);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -611,7 +666,7 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeEmpty();
         // Verify that the validation error message is returned in the corresponding language
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -660,7 +715,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(5);
         result.NextExecutionTime.Value.Hour.ShouldBe(0);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -699,14 +753,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it correctly moves considering the leap year to Thursday, March 7, 2024
         result.NextExecutionTime.Value.Year.ShouldBe(2024);
         result.NextExecutionTime.Value.Month.ShouldBe(3);
         result.NextExecutionTime.Value.Day.ShouldBe(7);
         result.NextExecutionTime.Value.Hour.ShouldBe(0);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -755,14 +807,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it moves to Thursday (January 2, 2020) at 10:00 PM UTC (first interval of that day)
         result.NextExecutionTime.Value.Year.ShouldBe(2020);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
         result.NextExecutionTime.Value.Day.ShouldBe(2);
         result.NextExecutionTime.Value.Hour.ShouldBe(22);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -808,7 +858,7 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeEmpty();
         // Verify that the validation error message is returned in the corresponding language
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -860,14 +910,12 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the exact minute of execution (5:00 AM) on Wednesday, January 1, 2020
         result.NextExecutionTime.Value.Year.ShouldBe(2020);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
         result.NextExecutionTime.Value.Day.ShouldBe(1);
         result.NextExecutionTime.Value.Hour.ShouldBe(5);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -917,7 +965,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the exact second of execution (4:01:00 AM) on Wednesday, January 1, 2020
         result.NextExecutionTime.Value.Year.ShouldBe(2020);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
@@ -925,7 +972,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Hour.ShouldBe(4);
         result.NextExecutionTime.Value.Minute.ShouldBe(1);
         result.NextExecutionTime.Value.Second.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -986,11 +1032,9 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the exact hour calculated by the engine
         result.NextExecutionTime.Value.Hour.ShouldBe(expectedHour);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1032,7 +1076,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Description.ShouldNotBeNullOrEmpty();
-
         // Verify that the description applies the translations, time format, and date order of the requested locale
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1085,7 +1128,6 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(1);
         result.NextExecutionTime.Value.Hour.ShouldBe(20);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the translations and local formats of New York
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1099,11 +1141,11 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
 
 
     [Theory]
-    // Caso 1: Inicia en Lunes -> Lunes 11 es Semana 1 (Se salta) -> Cae el lunes 18 (Semana 2)
+    // Case 1: Starts on Monday -> Monday 11 is Week 1 (Skipped) -> Falls on Monday 18 (Week 2)
     [InlineData(DayOfWeek.Monday, 18, "en-US", "Occurs every 2 weeks on Monday", "12:00 AM", "05-18-2026")]
     [InlineData(DayOfWeek.Monday, 18, "en-GB", "Occurs every 2 weeks on Monday", "00:00", "18/05/2026")]
     [InlineData(DayOfWeek.Monday, 18, "es-ES", "Ocurre cada 2 semanas el lunes", "00:00", "18/05/2026")]
-    // Caso 2: Inicia en Jueves -> Lunes 11 es Semana 0 (Coincidencia/Hit) -> Cae el lunes 11 (Semana 0)
+    // Case 2: Starts on Thursday -> Monday 11 is Week 0 (Hit) -> Falls on Monday 11 (Week 0)
     [InlineData(DayOfWeek.Thursday, 11, "en-US", "Occurs every 2 weeks on Monday", "12:00 AM", "05-11-2026")]
     [InlineData(DayOfWeek.Thursday, 11, "en-GB", "Occurs every 2 weeks on Monday", "00:00", "11/05/2026")]
     [InlineData(DayOfWeek.Thursday, 11, "es-ES", "Ocurre cada 2 semanas el lunes", "00:00", "11/05/2026")]
@@ -1136,16 +1178,13 @@ public class CalculateNextExecution_RecurringWeeklySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that the resulting date is correct according to the weekly grouping
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(5);
         result.NextExecutionTime.Value.Day.ShouldBe(expectedDay);
-
         // Being anchored to the LimitsStartDateLocal time, the time will always be 00:00
         result.NextExecutionTime.Value.Hour.ShouldBe(0);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the translations and local formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);

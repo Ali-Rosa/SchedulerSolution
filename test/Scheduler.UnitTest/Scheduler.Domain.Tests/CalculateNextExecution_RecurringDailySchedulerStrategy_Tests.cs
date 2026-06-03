@@ -17,7 +17,9 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     [InlineData("en-US", "The frequency interval must be greater than 0.")]
     [InlineData("en-GB", "The frequency interval must be greater than 0.")]
     [InlineData("es-ES", "El intervalo de frecuencia debe ser mayor que 0.")]
-    public void CalculateNextExecution_WhenDailyFrequencyIntervalIsNegative_ReturnsValidationError(string locale, string expectedErrorMessage)
+    public void CalculateNextExecution_WhenDailyFrequencyIntervalIsNegative_ReturnsValidationError(
+        string locale, 
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -44,6 +46,8 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldContain(expectedErrorMessage);
     }
 
@@ -52,7 +56,9 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     [InlineData("en-US", "Not defined interval unit for daily frequency.")]
     [InlineData("en-GB", "Not defined interval unit for daily frequency.")]
     [InlineData("es-ES", "Unidad de intervalo no definida para la frecuencia diaria.")]
-    public void CalculateNextExecution_WhenDailyFrequencyIntervalUnitIsUndefined_ReturnsValidationError(string locale, string expectedErrorMessage)
+    public void CalculateNextExecution_WhenDailyFrequencyIntervalUnitIsUndefined_ReturnsValidationError(
+        string locale, 
+        string expectedErrorMessage )
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -79,6 +85,8 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
+        result.NextExecutionTime.ShouldBeNull();
+        result.Description.ShouldBeEmpty();
         result.ErrorMessage.ShouldContain(expectedErrorMessage);
     }
 
@@ -125,10 +133,8 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         result.NextExecutionTime.Value.Hour.ShouldBe(15);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
         result.Description.ShouldContain(expectedDate);
@@ -138,6 +144,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     #endregion Mode Selection (Once vs Every)
 
     #region Mode: Occurs Once
+
 
     [Theory]
     [InlineData("en-US", "Occurs every day", "3:00 PM", "05-06-2026")]
@@ -172,12 +179,9 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
-        // Verify that the execution result occurs on the same day (day 6) at 15:00
         result.NextExecutionTime.Value.Day.ShouldBe(6);
         result.NextExecutionTime.Value.Hour.ShouldBe(15);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
         result.Description.ShouldContain(expectedDate);
@@ -217,13 +221,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it moves to the next day (day 7) at 08:00 UTC
         result.NextExecutionTime.Value.Day.ShouldBe(7);
         result.NextExecutionTime.Value.Hour.ShouldBe(8);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
-        // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
         result.Description.ShouldContain(expectedDate);
@@ -272,12 +273,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it moves to the next valid interval (6:00 AM) on the same day (day 6)
         result.NextExecutionTime.Value.Day.ShouldBe(6);
         result.NextExecutionTime.Value.Hour.ShouldBe(6);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -323,12 +322,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the correct jump of 3 days (May 9) at its first interval (04:00 AM)
         result.NextExecutionTime.Value.Day.ShouldBe(9);
         result.NextExecutionTime.Value.Hour.ShouldBe(4);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -337,11 +334,77 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
     }
 
 
+    [Theory]
+    [InlineData("en-US", "Occurs every 3 days", "Every 2 hours", "6:00 AM", "05-06-2026")]
+    [InlineData("en-GB", "Occurs every 3 days", "Every 2 hours", "06:00", "06/05/2026")]
+    [InlineData("es-ES", "Ocurre cada 3 días.", "Cada 2 horas", "06:00", "06/05/2026")]
+    public void Calculate_NextExecution_RecurringDailyEveryDay_Should_Return_Sequence(
+        string locale,
+        string expectedPrefix,
+        string expectedFrequency,
+        string expectedTime,
+        string expectedDate)
+    {
+        // Arrange: 5 AM now. Recurs every day. Daily frequency every 2 hours from 4:00 to 8:00.
+        // Since 4:00 AM has passed for May 6th, the sequence starts at 6:00 AM.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 5, 6, 5, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            RecursEvery = 3,  // every 3 days
+            Occurs = OccursType.Daily,
+            MaxOccurrences = 10, // We limit the sequence to 10 actions
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = TimeIntervalUnit.Hours,
+                FrequencyInterval = 2,
+                StartTime = new TimeOnly(4, 0),
+                EndTime = new TimeOnly(8, 0)
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence: 
+        // - May 6: Only 6:00 AM and 8:00 AM are in the future.
+        // - May 9: 4:00 AM, 6:00 AM, and 8:00 AM.
+        // - May 12: 4:00 AM, 6:00 AM, and 8:00 AM.
+        // - May 15: 4:00 AM, 6:00 AM.
+        var expectedSequence = new List<DateTimeOffset>
+    {
+        new(2026, 5, 6, 6, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 6, 8, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 9, 4, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 9, 6, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 9, 8, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 12, 4, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 12, 6, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 12, 8, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 15, 4, 0, 0, TimeSpan.Zero),
+        new(2026, 5, 15, 6, 0, 0, TimeSpan.Zero)
+    };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        // Validate that the description of the first execution matches
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedFrequency);
+        result.Description.ShouldContain(expectedTime);
+        result.Description.ShouldContain(expectedDate);
+    }
+
+    
     #endregion Mode: Occurs Every
 
     #region Calendar Pattern (RecursEvery / Days)
 
-    
+
     [Theory]
     [InlineData("en-US", "Occurs every 3 days", "12:00 PM", "05-04-2026")]
     [InlineData("en-GB", "Occurs every 3 days", "12:00", "04/05/2026")]
@@ -370,12 +433,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it jumps exactly 3 days (from May 1 to May 4) at 12:00 UTC
         result.NextExecutionTime.Value.Day.ShouldBe(4);
         result.NextExecutionTime.Value.Hour.ShouldBe(12);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -406,7 +467,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
             Type = SchedulerType.Recurring,
             Occurs = OccursType.Daily,
             RecursEvery = 1,
-            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 1, 10, 30, 0, TimeSpan.Zero),
+            ExecutionDateTimeLocal = new DateTimeOffset(2026, 5, 1, 0, 0, 0, TimeSpan.Zero), // is ignored
             TimeZoneId = TimeZoneInfo.Utc.Id,
             Locale = locale
         };
@@ -420,7 +481,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(2);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(30);
-
         // Verify that the description contains the localized time and date format
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -461,12 +521,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it moves exactly to the start limit date (May 10) at 10:00 UTC
         result.NextExecutionTime.Value.Day.ShouldBe(10);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -501,7 +559,7 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeEmpty();
         // Verify that the error message is translated correctly according to the locale
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -550,12 +608,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it jumps to the next interval (06:00 AM) due to the strict 'e > now' rule
         result.NextExecutionTime.Value.Day.ShouldBe(6);
         result.NextExecutionTime.Value.Hour.ShouldBe(6);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -592,14 +648,12 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the year boundary crossing to January 1, 2026
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(1);
         result.NextExecutionTime.Value.Day.ShouldBe(1);
         result.NextExecutionTime.Value.Hour.ShouldBe(22);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -635,14 +689,12 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that the leap year is handled correctly (February 29, 2024)
         result.NextExecutionTime.Value.Year.ShouldBe(2024);
         result.NextExecutionTime.Value.Month.ShouldBe(2);
         result.NextExecutionTime.Value.Day.ShouldBe(29);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -702,12 +754,10 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the temporal accuracy at the small unit level
         result.NextExecutionTime.Value.Hour.ShouldBe(h);
         result.NextExecutionTime.Value.Minute.ShouldBe(m);
         result.NextExecutionTime.Value.Second.ShouldBe(s);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -755,7 +805,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-
         // Verify in a localized manner that it contains the expected fragments
         result.Description.ShouldContain(expectedFrequency);
         result.Description.ShouldContain(expectedTime);
@@ -793,7 +842,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-
         // Verify that the prefix of the recurrence text is correctly translated
         result.Description.ShouldContain(expectedPrefix);
     }
@@ -836,7 +884,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(2);
         result.NextExecutionTime.Value.Hour.ShouldBe(8);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description is in the requested language format
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -876,7 +923,6 @@ public class CalculateNextExecution_RecurringDailySchedulerStrategy_Tests
 
         // Verify logical equality: weekly changes do not affect the daily time series
         resMonday.NextExecutionTime.ShouldBe(resSunday.NextExecutionTime);
-
         // verify that the descriptive text remains identical and adapted to the language
         resMonday.Description.ShouldBe(resSunday.Description);
         resMonday.Description.ShouldContain(expectedPrefix);

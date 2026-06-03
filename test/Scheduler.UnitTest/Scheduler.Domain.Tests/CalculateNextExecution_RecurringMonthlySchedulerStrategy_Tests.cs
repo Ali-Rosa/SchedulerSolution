@@ -39,7 +39,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeNullOrEmpty();
         // Verify that the validation error message is translated correctly according to the culture
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -96,7 +96,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
         result.Description.ShouldNotBeNullOrWhiteSpace();
-
         // Verify that the relative ordinal prefix is translated and formatted according to the culture
         result.Description.ShouldContain(expectedOrdinalPhrase);
     }
@@ -136,7 +135,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it falls exactly on the second Friday of the month (Friday, June 12, 2026) at 10:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(6);
@@ -144,7 +142,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
         result.NextExecutionTime.Value.DayOfWeek.ShouldBe(DayOfWeek.Friday);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -184,7 +181,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeNullOrEmpty();
         // Verify that the validation error message contains the value and the correct translation according to the locale
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -222,7 +219,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeNullOrEmpty();
         // Verify that the validation error message contains the value and the correct translation according to the locale
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -274,7 +271,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-
+        result.Description.ShouldBeNullOrEmpty();
         // Verify that the validation error message is returned in the corresponding language
         result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
@@ -328,7 +325,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(15);
         result.NextExecutionTime.Value.Hour.ShouldBe(14);
         result.NextExecutionTime.Value.Minute.ShouldBe(30);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -392,10 +388,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -447,11 +441,9 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(29);
         result.NextExecutionTime.Value.Hour.ShouldBe(17);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // The day of the week must be a weekday (Monday-Friday), not Saturday or Sunday
         result.NextExecutionTime.Value.DayOfWeek.ShouldNotBe(DayOfWeek.Saturday);
         result.NextExecutionTime.Value.DayOfWeek.ShouldNotBe(DayOfWeek.Sunday);
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -532,10 +524,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -609,10 +599,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -689,11 +677,88 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the corresponding translations and formats
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedFrequency);
+        result.Description.ShouldContain(expectedTime);
+        result.Description.ShouldContain(expectedDate);
+    }
+
+    [Theory]
+    [InlineData("en-US", "Occurs day 15 of every 2 months", "Every 4 hours", "8:00 AM", "01-15-2026")]
+    [InlineData("en-GB", "Occurs day 15 of every 2 months", "Every 4 hours", "08:00", "15/01/2026")]
+    [InlineData("es-ES", "Ocurre el día 15 de cada 2 meses", "Cada 4 horas", "08:00", "15/01/2026")]
+    public void Calculate_NextExecution_RecurringMonthlyWithTwoMonthInterval_Should_Return_Sequence(
+            string locale,
+            string expectedPrefix,
+            string expectedFrequency,
+            string expectedTime,
+            string expectedDate )
+    {
+        // Arrange: Start query at Jan 1st, 2026 at 00:00.
+        // Recurrence is set to every 2 months on day 15, from 8:00 AM to 8:00 PM every 4 hours.
+        // MaxOccurrences is limited to 10 to evaluate the sequence.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 2, // Every 2 months
+            MaxOccurrences = 10, // Sequence of exactly 10 executions
+            MonthlyConfiguration = new()
+            {
+                IsSpecificDay = true,
+                SpecificDayNumber = 15
+            },
+            DailyFrequencyConfiguration = new()
+            {
+                OccursEveryEnable = true,
+                IntervalUnit = TimeIntervalUnit.Hours,
+                FrequencyInterval = 4,
+                StartTime = new TimeOnly(8, 0),
+                EndTime = new TimeOnly(20, 0)
+            },
+            LimitsStartDateLocal = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence of 10 executions:
+        // - January 15th: 8:00 AM, 12:00 PM, 4:00 PM, 8:00 PM (4 executions)
+        // - March 15th: 8:00 AM, 12:00 PM, 4:00 PM, 8:00 PM (4 executions)
+        // - May 15th: 8:00 AM, 12:00 PM (2 executions)
+        var expectedSequence = new List<DateTimeOffset>
+        {
+            // January (Month 1 active)
+            new(2026, 1, 15, 8, 0, 0, TimeSpan.Zero),
+            new(2026, 1, 15, 12, 0, 0, TimeSpan.Zero),
+            new(2026, 1, 15, 16, 0, 0, TimeSpan.Zero),
+            new(2026, 1, 15, 20, 0, 0, TimeSpan.Zero),
+
+            // March (Month 3 active - February is skipped)
+            new(2026, 3, 15, 8, 0, 0, TimeSpan.Zero),
+            new(2026, 3, 15, 12, 0, 0, TimeSpan.Zero),
+            new(2026, 3, 15, 16, 0, 0, TimeSpan.Zero),
+            new(2026, 3, 15, 20, 0, 0, TimeSpan.Zero),
+
+            // May (Month 5 active - April is skipped)
+            new(2026, 5, 15, 8, 0, 0, TimeSpan.Zero),
+            new(2026, 5, 15, 12, 0, 0, TimeSpan.Zero)
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+
+        // Validate that the complete list of 10 times matches the expectation
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+
+        // Validate that the description of the first execution (January 15th at 08:00) is correct
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
         result.Description.ShouldContain(expectedTime);
@@ -705,7 +770,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
 
     #region Monthly Pattern (Specific Day)
 
-    
+
     [Theory]
     [InlineData("en-US", "Occurs day 10 of every month", "2:30 PM", "05-10-2026")]
     [InlineData("en-GB", "Occurs day 10 of every month", "14:30", "10/05/2026")]
@@ -744,7 +809,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(10);
         result.NextExecutionTime.Value.Hour.ShouldBe(14);
         result.NextExecutionTime.Value.Minute.ShouldBe(30);
-
         // Verify the localized output description
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -790,7 +854,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(10);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify the localized output description
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -836,8 +899,77 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Day.ShouldBe(31);  // Day 31
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify the localized output description
+        result.Description.ShouldContain(expectedPrefix);
+        result.Description.ShouldContain(expectedTime);
+        result.Description.ShouldContain(expectedDate);
+    }
+
+
+    [Theory]
+    [InlineData("en-US", "Occurs day 31 of every month", "10:00 AM", "03-31-2026")]
+    [InlineData("en-GB", "Occurs day 31 of every month", "10:00", "31/03/2026")]
+    [InlineData("es-ES", "Ocurre el día 31 de cada mes", "10:00", "31/03/2026")]
+    public void Calculate_NextExecution_MonthlyDay31Sequence_Should_Skip_Invalid_Months(
+            string locale,
+            string expectedPrefix,
+            string expectedTime,
+            string expectedDate)
+    {
+        // Arrange: Check starting on February 1st, 2026. 
+        // Since day 31 does not exist in February, April, June, September, and November,
+        // the engine must skip those months and return a 15-execution sequence only on valid 31st days.
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 2, 1, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 1,
+            MaxOccurrences = 15, // Request a sequence of 15 executions
+            MonthlyConfiguration = new()
+            {
+                IsSpecificDay = true,
+                SpecificDayNumber = 31
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence: skipping all months that do not have 31 days.
+        var expectedSequence = new List<DateTimeOffset>
+        {
+            // 2026
+            new(2026, 3, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2026, 5, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2026, 7, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2026, 8, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2026, 10, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2026, 12, 31, 10, 0, 0, TimeSpan.Zero),
+
+            // 2027
+            new(2027, 1, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 3, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 5, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 7, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 8, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 10, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2027, 12, 31, 10, 0, 0, TimeSpan.Zero),
+
+            // 2028 (Leap year, but February still does not have a 31st day)
+            new(2028, 1, 31, 10, 0, 0, TimeSpan.Zero),
+            new(2028, 3, 31, 10, 0, 0, TimeSpan.Zero)
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+
+        // Verify that the engine correctly skipped invalid months throughout the 15-execution sequence
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        // Verify the localized output description for the first scheduled run (March 31st, 2026)
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
         result.Description.ShouldContain(expectedDate);
@@ -898,6 +1030,147 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
     }
 
 
+    [Theory]
+    [InlineData("en-US", "the first weekday of every month")]
+    [InlineData("en-GB", "the first weekday of every month")]
+    [InlineData("es-ES", "el primer día de la semana de cada mes")]
+    public void Calculate_NextExecution_FirstWeekdayEveryMonth_Should_Return_Sequence(
+            string locale,
+            string expectedDescription )
+    {
+        // Arrange: Start query on Tuesday, June 2, 2026
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 6, 2, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 1,
+            MaxOccurrences = 5,
+            MonthlyConfiguration = new()
+            {
+                IsSpecificDay = false,
+                RelativeOrdinal = MonthlyRelativeOrdinal.First,
+                RelativeDayType = MonthlyRelativeDayType.Weekday
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence: First weekday of every month starting after June 2nd
+        var expectedSequence = new List<DateTimeOffset>
+        {
+            new(2026, 7, 1, 10, 0, 0, TimeSpan.Zero),   // Wednesday, July 1st
+            new(2026, 8, 3, 10, 0, 0, TimeSpan.Zero),   // Monday, August 3rd
+            new(2026, 9, 1, 10, 0, 0, TimeSpan.Zero),   // Tuesday, September 1st
+            new(2026, 10, 1, 10, 0, 0, TimeSpan.Zero),  // Thursday, October 1st
+            new(2026, 11, 2, 10, 0, 0, TimeSpan.Zero)   // Monday, November 2nd
+        };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        result.Description.ShouldContain(expectedDescription);
+    }
+
+
+    [Theory]
+    [InlineData("en-US", "the last day of every 2 months")]
+    [InlineData("en-GB", "the last day of every 2 months")]
+    [InlineData("es-ES", "el último día de cada 2 meses")] // Corregido para que coincida con el patrón de traducción
+    public void Calculate_NextExecution_LastDayEveryTwoMonths_Should_Return_Sequence(
+            string locale,
+            string expectedDescription)
+    {
+        // Arrange: Start query on Tuesday, June 2, 2026
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 6, 2, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 2,
+            MaxOccurrences = 5,
+            MonthlyConfiguration = new()
+            {
+                IsSpecificDay = false,
+                RelativeOrdinal = MonthlyRelativeOrdinal.Last,
+                RelativeDayType = MonthlyRelativeDayType.Day
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence: Last day of every 2 months (June, August, October, December, February)
+        var expectedSequence = new List<DateTimeOffset>
+    {
+        new(2026, 6, 30, 10, 0, 0, TimeSpan.Zero),  // June 30th, 2026
+        new(2026, 8, 31, 10, 0, 0, TimeSpan.Zero),  // August 31st, 2026
+        new(2026, 10, 31, 10, 0, 0, TimeSpan.Zero), // October 31st, 2026
+        new(2026, 12, 31, 10, 0, 0, TimeSpan.Zero), // December 31st, 2026
+        new(2027, 2, 28, 10, 0, 0, TimeSpan.Zero)   // February 28th, 2027
+    };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        result.Description.ShouldContain(expectedDescription);
+    }
+
+
+    [Theory]
+    [InlineData("en-US", "the third day of every month")]
+    [InlineData("en-GB", "the third day of every month")]
+    [InlineData("es-ES", "el tercer día de cada mes")]
+    public void Calculate_NextExecution_ThirdDayEveryMonth_Should_Return_Sequence(
+            string locale,
+            string expectedDescription)
+    {
+        // Arrange: Start query on Tuesday, June 2, 2026
+        SchedulerConfiguration config = new()
+        {
+            CurrentDate = new DateTimeOffset(2026, 6, 2, 10, 0, 0, TimeSpan.Zero),
+            Enabled = true,
+            Type = SchedulerType.Recurring,
+            Occurs = OccursType.Monthly,
+            RecursEvery = 1,
+            MaxOccurrences = 5,
+            MonthlyConfiguration = new()
+            {
+                IsSpecificDay = false,
+                RelativeOrdinal = MonthlyRelativeOrdinal.Third,
+                RelativeDayType = MonthlyRelativeDayType.Day
+            },
+            TimeZoneId = TimeZoneInfo.Utc.Id,
+            Locale = locale,
+        };
+
+        // Expected sequence: The 3rd day of every month starting after June 2nd
+        var expectedSequence = new List<DateTimeOffset>
+    {
+        new(2026, 6, 3, 10, 0, 0, TimeSpan.Zero),   // June 3rd
+        new(2026, 7, 3, 10, 0, 0, TimeSpan.Zero),   // July 3rd
+        new(2026, 8, 3, 10, 0, 0, TimeSpan.Zero),   // August 3rd
+        new(2026, 9, 3, 10, 0, 0, TimeSpan.Zero),   // September 3rd
+        new(2026, 10, 3, 10, 0, 0, TimeSpan.Zero)  // October 3rd
+    };
+
+        // Act
+        var result = _service.CalculateNextExecution(config);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.NextExecutionTimes.ShouldBe(expectedSequence);
+        result.Description.ShouldContain(expectedDescription);
+    }
+
+    
     #endregion Monthly Pattern (Relative Day)
 
     #region Month Recurrence (RecursEvery)
@@ -937,14 +1210,12 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that it remains in the start month (month 5) at 10:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(5); // First execution in May
         result.NextExecutionTime.Value.Day.ShouldBe(10);
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -987,7 +1258,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the accuracy of the calculation for the first Monday of April (Monday, April 6, 2026) at 10:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(4);
@@ -995,7 +1265,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
         result.NextExecutionTime.Value.DayOfWeek.ShouldBe(DayOfWeek.Monday);
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1067,10 +1336,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1114,7 +1381,7 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
             Enabled = true,
             Type = SchedulerType.Recurring,
             Occurs = OccursType.Monthly,
-            RecursEvery = 3, // Cada 3 meses
+            RecursEvery = 3, // Every 3 months
             MonthlyConfiguration = new()
             {
                 IsSpecificDay = true,
@@ -1138,10 +1405,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1193,7 +1458,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime!.Value.Day.ShouldBe(15);
         result.NextExecutionTime!.Value.Hour.ShouldBe(10);
         result.NextExecutionTime!.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1240,7 +1504,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime!.Value.Day.ShouldBe(29);
         result.NextExecutionTime!.Value.Hour.ShouldBe(10);
         result.NextExecutionTime!.Value.Minute.ShouldBe(0);
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1290,10 +1553,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert: The date engine should correctly calculate the local time zone offset
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the CDT offset (UTC-5 in May, which is numerically greater than -6)
         result.NextExecutionTime.Value.Offset.TotalHours.ShouldBeGreaterThan(-6);
-
         // Verify that the generated description applies the translations, frequencies, and local formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1350,10 +1611,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the strict match of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // Verify that the generated description applies the translations and corresponding formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1430,10 +1689,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // strictly verify the consistency of the date and time returned by the engine.
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute, 0, TimeSpan.Zero));
-
         // verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1507,10 +1764,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // strictly verify the consistency of the date and time returned by the engine
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, 0, 0, TimeSpan.Zero));
-
         // verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1587,10 +1842,8 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // strictly verify the consistency of the date and time returned by the engine.
         result.NextExecutionTime.ShouldBe(new DateTimeOffset(expectedYear, expectedMonth, expectedDay, expectedHour, expectedMinute, expectedSecond, TimeSpan.Zero));
-
         // verify that the generated description applies the corresponding translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedFrequency);
@@ -1646,7 +1899,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that the description contains the corresponding localized interval
         result.Description.ShouldContain(expectedDescriptionSubstring);
     }
@@ -1691,7 +1943,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert: The description should include the localized intraday frequency details
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify that the description contains the localized intraday frequency interval
         result.Description.ShouldContain(expectedFrequency);
     }
@@ -1736,14 +1987,12 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         // Assert: The description should detail the localized pattern
         result.IsSuccess.ShouldBeTrue();
         result.NextExecutionTime.ShouldNotBeNull();
-
         // Verify the correct 2-month jump (Monday, August 3, 2026) at 15:00 UTC
         result.NextExecutionTime.Value.Year.ShouldBe(2026);
         result.NextExecutionTime.Value.Month.ShouldBe(8);
         result.NextExecutionTime.Value.Day.ShouldBe(3);
         result.NextExecutionTime.Value.Hour.ShouldBe(15);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
-
         // Verify that the description contains the expected pattern and localized time and date format
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1785,11 +2034,9 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
 
         // Act
         var result = _service.CalculateNextExecution(config);
-
         // Assert: The description should include the localized time, date, and expected pattern
         result.IsSuccess.ShouldBeTrue();
         result.Description.ShouldNotBeNullOrEmpty();
-
         // Verify the localized elements within the output string
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
@@ -1837,7 +2084,6 @@ public class CalculateNextExecution_RecurringMonthlySchedulerStrategy_Tests
         result.NextExecutionTime.Value.Hour.ShouldBe(10);
         result.NextExecutionTime.Value.Minute.ShouldBe(0);
         result.NextExecutionTime.Value.DayOfWeek.ShouldBe(DayOfWeek.Thursday);
-
         // Verify that the generated description applies the correct translations and formats
         result.Description.ShouldContain(expectedPrefix);
         result.Description.ShouldContain(expectedTime);
