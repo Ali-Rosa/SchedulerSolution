@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Localization;
+using Scheduler.Domain.Models;
 using Scheduler.Domain.Strategies;
 using Scheduler.Domain.Validators;
 
@@ -12,17 +13,26 @@ public class SchedulerService
 
     public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config)
     {
-        if (config is null) return new SchedulerResponse("The configuration cannot be null.");
+        if (config is null)
+        {
+            var defaultLocalizer = SchedulerLocalizerFactory.GetLocalizer(null);
+            return new SchedulerResponse(defaultLocalizer.GetValidationError(ValidationErrorKey.ConfigNull));
+        }
 
         var (isValidConfig, configError) = config.Validate();
-        if (!isValidConfig) return new SchedulerResponse(configError);
+        if (!isValidConfig) 
+            return new SchedulerResponse(configError);
 
         var (isEnvValid, envError, timeZone) = SchedulerEnvironmentValidator.Validate(config);
-        if (!isEnvValid) return new SchedulerResponse(envError);
+        if (!isEnvValid) 
+            return new SchedulerResponse(envError);
 
         var key = new StrategyKey(config.Type, config.Occurs);
         if (!_strategies.TryGetValue(key, out var strategy))
-            return new SchedulerResponse("Unsupported schedule and occurs combination.");
+        {
+            var localizer = SchedulerLocalizerFactory.GetLocalizer(config.Locale);
+            return new SchedulerResponse(localizer.GetValidationError(ValidationErrorKey.UnsupportedCombination));
+        }
 
         return strategy.CalculateNextExecution(config, timeZone!);
     }

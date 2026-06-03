@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Localization;
+using Scheduler.Domain.Models;
 using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Strategies;
@@ -9,22 +10,16 @@ public sealed class RecurringDailySchedulerStrategy : ISchedulerStrategy
 
     public SchedulerResponse CalculateNextExecution(SchedulerConfiguration config, TimeZoneInfo timeZone)
     {
-        var cultureInfo = CultureRule.GetCultureInfo(config.Locale!);
+        var localizer = SchedulerLocalizerFactory.GetLocalizer(config.Locale);
 
         return ScheduleEngine.IterateAndCalculate(
             config,
             timeZone,
             (fromDay, startDay) => DailyCalendarRule.GetNextValidDay(fromDay, startDay, config.RecursEvery),
             (nextDate) => {
-                var prefix = BuildDailyDescription(config.RecursEvery);
-                return DescriptionRule.BuildExecutionDescription(prefix, nextDate, config, timeZone, cultureInfo);
+                var prefix = localizer.BuildDailyPrefix(config.RecursEvery);
+                return localizer.BuildFullDescription(prefix, nextDate, config, timeZone);
             }
         );
     }
-
-    private static string BuildDailyDescription(int recursEvery)
-    {
-        return recursEvery == 1 ? "Occurs every day. " : $"Occurs every {recursEvery} days. ";
-    }
-
 }
