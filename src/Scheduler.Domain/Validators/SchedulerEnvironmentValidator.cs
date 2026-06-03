@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.Models;
+﻿using Scheduler.Domain.Localization;
+using Scheduler.Domain.Models;
 using Scheduler.Domain.Rules;
 
 namespace Scheduler.Domain.Validators;
@@ -7,8 +8,10 @@ public static class SchedulerEnvironmentValidator
 {
     public static (bool IsValid, string Error, TimeZoneInfo? TimeZone) Validate(SchedulerConfiguration config)
     {
+        var localizer = SchedulerLocalizerFactory.GetLocalizer(config.Locale);
+
         if (!CultureRule.IsValid(config.Locale))
-            return (false, $"The culture '{config.Locale}' is not supported by the system.", null);
+            return (false, localizer.GetValidationError(ValidationErrorKey.CultureNotSupported, config.Locale), null);
 
         try
         {
@@ -17,8 +20,7 @@ public static class SchedulerEnvironmentValidator
         }
         catch (TimeZoneNotFoundException)
         {
-            return (false, $"Invalid TimeZoneId: {config.TimeZoneId}", null);
+            return (false, localizer.GetValidationError(ValidationErrorKey.InvalidTimeZone, config.TimeZoneId), null);
         }
     }
-
 }

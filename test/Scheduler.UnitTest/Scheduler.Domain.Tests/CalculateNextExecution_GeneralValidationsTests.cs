@@ -17,7 +17,7 @@ public class CalculateNextExecution_GeneralValidationsTests
     #region General validations
 
     [Fact]
-    public void CalculateNextExecution_WhenConfigIsNull_ReturnsError()
+    public void CalculateNextExecution_WhenConfigIsNull_ReturnsErrorInEnglishForDefault()
     {
         // Act
         var result = _service.CalculateNextExecution(null!);
@@ -28,8 +28,11 @@ public class CalculateNextExecution_GeneralValidationsTests
         result.ErrorMessage.ShouldBe("The configuration cannot be null.");
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenSchedulerIsDisabled_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "The schedule is disabled.")]
+    [InlineData("en-GB", "The schedule is disabled.")]
+    [InlineData("es-ES", "La planificación está deshabilitada.")]
+    public void CalculateNextExecution_WhenSchedulerIsDisabled_ReturnsLocalizedError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -40,7 +43,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -49,11 +52,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldStartWith("The schedule is disabled.");
+        result.ErrorMessage.ShouldStartWith(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenSchedulerTypeIsInvalid_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Not defined schedule type.")]
+    [InlineData("en-GB", "Not defined schedule type.")]
+    [InlineData("es-ES", "Tipo de planificación no definido.")]
+    public void CalculateNextExecution_WhenSchedulerTypeIsInvalid_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -64,7 +70,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
+            Locale = locale
         };
 
         // Act
@@ -73,11 +79,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Not defined schedule type.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenOccursTypeIsInvalid_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Not defined occurs type.")]
+    [InlineData("en-GB", "Not defined occurs type.")]
+    [InlineData("es-ES", "Tipo de ocurrencia no definido.")]
+    public void CalculateNextExecution_WhenOccursTypeIsInvalid_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -88,7 +97,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = (OccursType)999,
             RecursEvery = 1,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
+            Locale = locale
         };
 
         // Act
@@ -97,13 +106,17 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Not defined occurs type.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
     [Theory]
-    [InlineData(0, "The Every value must be greater than 0.")]
-    [InlineData(-1, "The Every value must be greater than 0.")]
-    public void CalculateNextExecution_WhenRecursEveryIsZeroOrLess_ReturnsError(int invalidValue, string expectedError)
+    [InlineData("en-US", 0, "The Every value must be greater than 0.")]
+    [InlineData("en-US", -1, "The Every value must be greater than 0.")]
+    [InlineData("en-GB", 0, "The Every value must be greater than 0.")]
+    [InlineData("en-GB", -1, "The Every value must be greater than 0.")]
+    [InlineData("es-ES", 0, "El valor 'Cada' debe ser mayor que 0.")]
+    [InlineData("es-ES", -1, "El valor 'Cada' debe ser mayor que 0.")]
+    public void CalculateNextExecution_WhenRecursEveryIsZeroOrLess_ReturnsError(string locale, int invalidValue, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -114,7 +127,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = invalidValue,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
+            Locale = locale
         };
 
         // Act
@@ -122,11 +135,14 @@ public class CalculateNextExecution_GeneralValidationsTests
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.ErrorMessage.ShouldBe(expectedError);
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenLimitsStartDateIsAfterEndDate_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Within the limits, the start date cannot be later than the end date.")]
+    [InlineData("en-GB", "Within the limits, the start date cannot be later than the end date.")]
+    [InlineData("es-ES", "Dentro de los límites, la fecha de inicio no puede ser posterior a la de fin.")]
+    public void CalculateNextExecution_WhenLimitsStartDateIsAfterEndDate_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -139,7 +155,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             LimitsStartDateLocal = new DateTimeOffset(2026, 5, 10, 0, 0, 0, TimeSpan.Zero),
             LimitsEndDateLocal = new DateTimeOffset(2026, 5, 5, 0, 0, 0, TimeSpan.Zero),
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US"
+            Locale = locale
         };
 
         // Act
@@ -148,13 +164,17 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Within the limits, the start date cannot be later than the end date.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public void CalculateNextExecution_WhenTimeZoneIdIsNullOrEmpty_ReturnsError(string? invalidTimeZoneId)
+    [InlineData("en-US", null, "The TimeZoneId is required.")]
+    [InlineData("en-US", "", "The TimeZoneId is required.")]
+    [InlineData("en-GB", null, "The TimeZoneId is required.")]
+    [InlineData("en-GB", "", "The TimeZoneId is required.")]
+    [InlineData("es-ES", null, "El TimeZoneId es requerido.")]
+    [InlineData("es-ES", "", "El TimeZoneId es requerido.")]
+    public void CalculateNextExecution_WhenTimeZoneIdIsNullOrEmpty_ReturnsError(string locale, string? invalidTimeZoneId, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -165,7 +185,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = invalidTimeZoneId!,
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -174,11 +194,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldStartWith("The TimeZoneId is required.");
+        result.ErrorMessage.ShouldStartWith(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenTimeZoneIdIsInvalid_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Invalid TimeZoneId")]
+    [InlineData("en-GB", "Invalid TimeZoneId")]
+    [InlineData("es-ES", "TimeZoneId inválido")]
+    public void CalculateNextExecution_WhenTimeZoneIdIsInvalid_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
 
@@ -190,7 +213,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = "Invalid/Zone_Name",
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -199,13 +222,13 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldStartWith("Invalid TimeZoneId");
+        result.ErrorMessage.ShouldStartWith(expectedErrorMessage);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void CalculateNextExecution_WhenLocaleIsNullOrEmpty_ReturnsError(string? invalidLocale)
+    public void CalculateNextExecution_WhenLocaleIsNullOrEmpty_ReturnsErrorInEnglishForDefault(string? invalidLocale)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -229,7 +252,7 @@ public class CalculateNextExecution_GeneralValidationsTests
     }
 
     [Fact]
-    public void CalculateNextExecution_WhenLocaleIsNotSupported_ReturnsError()
+    public void CalculateNextExecution_WhenLocaleIsNotSupported_ReturnsErrorInEnglishForDefault()
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -251,8 +274,11 @@ public class CalculateNextExecution_GeneralValidationsTests
         result.ErrorMessage.ShouldContain("not supported by the system");
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenFirstDayOfWeekIsInvalid_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "The provided FirstDayOfWeek is not a valid day of the week.")]
+    [InlineData("en-GB", "The provided FirstDayOfWeek is not a valid day of the week.")]
+    [InlineData("es-ES", "El FirstDayOfWeek proporcionado no es un día válido de la semana.")]
+    public void CalculateNextExecution_WhenFirstDayOfWeekIsInvalid_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -264,7 +290,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             RecursEvery = 1,
             FirstDayOfWeek = (DayOfWeek)1981,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -273,11 +299,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("The provided FirstDayOfWeek is not a valid day of the week.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenNoStrategyMatchesConfiguration_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Unsupported schedule and occurs combination.")]
+    [InlineData("en-GB", "Unsupported schedule and occurs combination.")]
+    [InlineData("es-ES", "Combinación de planificación y ocurrencia no soportada.")]
+    public void CalculateNextExecution_WhenNoStrategyMatchesConfiguration_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         var schedulerService = new SchedulerService(new ISchedulerStrategy[]
@@ -293,7 +322,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             Occurs = OccursType.Daily,
             RecursEvery = 1,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -302,11 +331,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Unsupported schedule and occurs combination.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenWeeklyConfigurationIsMissing_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Weekly configuration is required for Weekly recurring schedules.")]
+    [InlineData("en-GB", "Weekly configuration is required for Weekly recurring schedules.")]
+    [InlineData("es-ES", "La configuración semanal es requerida para planificaciones recurrentes semanales.")]
+    public void CalculateNextExecution_WhenWeeklyConfigurationIsMissing_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -318,7 +350,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             RecursEvery = 1,
             WeeklyConfiguration = null,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
+            Locale = locale
         };
 
         // Act
@@ -327,11 +359,14 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Weekly configuration is required for Weekly recurring schedules.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
-    [Fact]
-    public void CalculateNextExecution_WhenMonthlyConfigurationIsMissing_ReturnsError()
+    [Theory]
+    [InlineData("en-US", "Monthly configuration is required for Monthly recurring schedules.")]
+    [InlineData("en-GB", "Monthly configuration is required for Monthly recurring schedules.")]
+    [InlineData("es-ES", "La configuración mensual es requerida para planificaciones recurrentes mensuales.")]
+    public void CalculateNextExecution_WhenMonthlyConfigurationIsMissing_ReturnsError(string locale, string expectedErrorMessage)
     {
         // Arrange
         SchedulerConfiguration config = new()
@@ -343,7 +378,7 @@ public class CalculateNextExecution_GeneralValidationsTests
             RecursEvery = 1,
             MonthlyConfiguration = null,
             TimeZoneId = TimeZoneInfo.Utc.Id,
-            Locale = "en-US",
+            Locale = locale,
         };
 
         // Act
@@ -352,7 +387,7 @@ public class CalculateNextExecution_GeneralValidationsTests
         // Assert
         result.IsSuccess.ShouldBeFalse();
         result.NextExecutionTime.ShouldBeNull();
-        result.ErrorMessage.ShouldBe("Monthly configuration is required for Monthly recurring schedules.");
+        result.ErrorMessage.ShouldBe(expectedErrorMessage);
     }
 
 
